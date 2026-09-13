@@ -10,4 +10,4 @@ This project requires environment variables for Supabase.
    ```
 2. Open `.env` and fill in the required secret values.
 
-> **Note:** The necessary secret names and their descriptions are located in the `env.example` file. Never commit your `.env.local` file to the repository.
+> **Note:** The necessary secret names and their descriptions are located in the `env.example` file. Never commit your `.env` file to the repository.
