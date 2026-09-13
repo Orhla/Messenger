@@ -1,52 +1,52 @@
-import { useEffect, useRef, useState } from "react"
-import { supabase } from "@/supabase"
-import { getUsername } from "@/lib/utils"
-import type { Message } from "@/lib/types"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { useEffect, useRef, useState } from 'react';
+import { supabase } from '@/supabase';
+import { getUsername } from '@/lib/utils';
+import type { Message } from '@/lib/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-const USERNAME = getUsername()
+const USERNAME = getUsername();
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [text, setText] = useState("")
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState('');
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     const channel = supabase
-      .channel("general")
-      .on("broadcast", { event: "message" }, ({ payload }) => {
-        setMessages(prev => [...prev, payload as Message])
+      .channel('general')
+      .on('broadcast', { event: 'message' }, ({ payload }) => {
+        setMessages((prev) => [...prev, payload as Message]);
       })
-      .subscribe()
+      .subscribe();
 
-    channelRef.current = channel
+    channelRef.current = channel;
 
     return () => {
-      channel.unsubscribe()
-    }
-  }, [])
+      channel.unsubscribe();
+    };
+  }, []);
 
   function send() {
-    if (!text.trim() || !channelRef.current) return
+    if (!text.trim() || !channelRef.current) return;
 
     const newMessage: Message = {
       id: crypto.randomUUID(),
       text: text.trim(),
       author: USERNAME,
       timestamp: Date.now(),
-    }
+    };
 
     channelRef.current.send({
-      type: "broadcast",
-      event: "message",
+      type: 'broadcast',
+      event: 'message',
       payload: newMessage,
-    })
+    });
 
-    setMessages(prev => [...prev, newMessage])
+    setMessages((prev) => [...prev, newMessage]);
 
-    setText("")
+    setText('');
   }
 
   return (
@@ -60,12 +60,12 @@ export default function App() {
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((m) => {
-            const isMe = m.author === USERNAME
-            
+            const isMe = m.author === USERNAME;
+
             return (
-              <div 
-                key={m.id} 
-                className={`flex flex-col max-w-[75%] ${isMe ? "ml-auto items-end" : "mr-auto items-start"}`}
+              <div
+                key={m.id}
+                className={`flex flex-col max-w-[75%] ${isMe ? 'ml-auto items-end' : 'mr-auto items-start'}`}
               >
                 {/* Имя автора (показываем только для чужих сообщений) */}
                 {!isMe && (
@@ -73,19 +73,19 @@ export default function App() {
                     {m.author}
                   </span>
                 )}
-                
+
                 {/* Пузырь сообщения */}
-                <div 
+                <div
                   className={`rounded-lg p-3 text-sm break-words ${
-                    isMe 
-                      ? "bg-primary text-primary-foreground rounded-tr-none" 
-                      : "bg-muted text-foreground rounded-tl-none"
+                    isMe
+                      ? 'bg-primary text-primary-foreground rounded-tr-none'
+                      : 'bg-muted text-foreground rounded-tl-none'
                   }`}
                 >
                   {m.text}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </ScrollArea>
@@ -95,14 +95,12 @@ export default function App() {
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
+          onKeyDown={(e) => e.key === 'Enter' && send()}
           placeholder="Напишите сообщение..."
           className="flex-1"
         />
-        <Button onClick={send}>
-          Отправить
-        </Button>
+        <Button onClick={send}>Отправить</Button>
       </footer>
     </div>
-  )
+  );
 }
