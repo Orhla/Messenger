@@ -10,10 +10,12 @@ const USERNAME = getUsername();
 
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
+  // вот тоже не хватает компонентов. Если мы не будем выносить верстку (и состояние) в отдельные компоненты, получится монстр.
   const [text, setText] = useState('');
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
+    // а расскажи что тут происходит
     const channel = supabase
       .channel('general')
       .on('broadcast', { event: 'message' }, ({ payload }) => {
@@ -49,6 +51,8 @@ export default function App() {
     setText('');
   }
 
+  // app.tsx обычно делают тонким. Верстку тут делать не надо.
+  // да даже и для чата я бы сделал отдельный компонент. Т.к. если будем добавлять роуты будет больно выгрызать это из апп файла
   return (
     <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">
       {/* Шапка чата */}
