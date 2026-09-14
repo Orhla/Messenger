@@ -2,5 +2,5 @@ export type Message = {
   id: string;
   text: string;
   author: string;
-  timestamp: number;
+  created_at: string;
 };

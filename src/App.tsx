@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { supabase } from '@/supabase';
+import { useEffect, useState } from 'react';
 import { getUsername } from '@/lib/utils';
 import type { Message } from '@/lib/types';
+import { fetchMessages, sendMessage, subscribeToMessages } from '@/lib/messages';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,45 +10,23 @@ const USERNAME = getUsername();
 
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
-  // вот тоже не хватает компонентов. Если мы не будем выносить верстку (и состояние) в отдельные компоненты, получится монстр.
   const [text, setText] = useState('');
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
-    // а расскажи что тут происходит
-    const channel = supabase
-      .channel('general')
-      .on('broadcast', { event: 'message' }, ({ payload }) => {
-        setMessages((prev) => [...prev, payload as Message]);
-      })
-      .subscribe();
+    fetchMessages().then(setMessages);
 
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
-
-  function send() {
-    if (!text.trim() || !channelRef.current) return;
-
-    const newMessage: Message = {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      author: USERNAME,
-      timestamp: Date.now(),
-    };
-
-    channelRef.current.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: newMessage,
+    const unsubscribe = subscribeToMessages((message) => {
+      setMessages((prev) => [...prev, message]);
     });
 
-    setMessages((prev) => [...prev, newMessage]);
+    return unsubscribe;
+  }, []);
 
+  async function send() {
+    if (!text.trim()) return;
+    // todo: добавить обработку ошибок, статус загрузки и т.д.
     setText('');
+    await sendMessage(text.trim(), USERNAME);
   }
 
   // app.tsx обычно делают тонким. Верстку тут делать не надо.
