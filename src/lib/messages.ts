@@ -16,12 +16,16 @@ export async function fetchMessages(
 
 export async function sendMessage(
     text: string,
+    senderId: string,
     receiverId: string,
 ): Promise<void> {
-    const { error } = await supabase
-        .from('messages')
-        .insert({ text, receiver_id: receiverId
-        });
+    const x = await supabase.auth.getUser();
+    console.log("Current user:", x.data.user);
+    const { error } = await supabase.from('messages').insert({
+        text,
+        receiver_id: receiverId,
+        sender_id: senderId,
+    });
     if (error) throw error;
 }
 

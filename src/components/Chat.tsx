@@ -19,13 +19,14 @@ export default function Chat() {
     const [text, setText] = useState('');
     const [correspondent, setCorrespondent] = useState<Profile | null>(null);
     const {session} = useAuth();
+    const currentUserId = session!.user.id;
+
     useEffect(() => {
         if (!correspondent) {
             setMessages([]);
             return;
         }
 
-        const currentUserId = session!.user.id;
         const receiverId = correspondent.id;
 
         fetchMessages(correspondent.id).then(setMessages);
@@ -48,7 +49,7 @@ export default function Chat() {
         if (!trimmedText || !correspondent) return;
         setText('');
         try {
-            await sendMessage(trimmedText, correspondent.id);
+            await sendMessage(trimmedText, currentUserId, correspondent.id);
         } catch (error) {
             console.error('Не удалось отправить сообщение');
         }
