@@ -11,29 +11,24 @@ import {
     sendMessage,
     subscribeToMessages,
 } from '@/lib/messages';
-import AuthForm from '@/components/AuthForm';
 import { useAuth } from '@/context/AuthContext';
 import SearchUsers from '@/components/SearchUsers';
 
 export default function Chat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [text, setText] = useState('');
-    const [receiver, setReceiver] = useState<Profile | null>(null);
-
-    const { session, loading } = useAuth();
-    if (!session) return <AuthForm />;
-    if (loading) return null;
-
+    const [correspondent, setCorrespondent] = useState<Profile | null>(null);
+    const {session} = useAuth();
     useEffect(() => {
-        if (!session || !receiver) {
+        if (!correspondent) {
             setMessages([]);
             return;
         }
 
-        const currentUserId = session.user.id;
-        const receiverId = receiver.id;
+        const currentUserId = session!.user.id;
+        const receiverId = correspondent.id;
 
-        fetchMessages(currentUserId, receiverId).then(setMessages);
+        fetchMessages(correspondent.id).then(setMessages);
 
         const unsubscribe = subscribeToMessages(
             currentUserId,
@@ -46,22 +41,20 @@ export default function Chat() {
         return () => {
             unsubscribe();
         };
-    }, [session, receiver]);
-
-    const currentUserId = session.user.id;
+    }, [correspondent]);
 
     async function send() {
         const trimmedText = text.trim();
-        if (!trimmedText || !receiver) return;
+        if (!trimmedText || !correspondent) return;
         setText('');
         try {
-            await sendMessage(trimmedText, receiver.id, currentUserId);
+            await sendMessage(trimmedText, correspondent.id);
         } catch (error) {
             console.error('Не удалось отправить сообщение');
         }
     }
 
-    const chatTitle = receiver ? receiver.email : 'Выберите собеседника...';
+    const chatTitle = correspondent ? correspondent.email : 'Выберите собеседника...';
 
     return (
         <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">
@@ -71,9 +64,9 @@ export default function Chat() {
                 onClick={signOut}
             />
 
-            <SearchUsers onSelectReceiver={setReceiver} />
+            <SearchUsers onSelectReceiver={setCorrespondent} />
 
-            <ChatArea author={currentUserId} messages={messages} />
+            <ChatArea messages={messages} />
 
             <ChatFooter
                 buttonText="Отправить"

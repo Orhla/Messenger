@@ -2,15 +2,12 @@ import { supabase } from '@/supabase';
 import type { ChatMessage } from '@/lib/types';
 
 export async function fetchMessages(
-    currentUserId: string,
-    receiverId: string,
+    correspondentId: string,
 ): Promise<ChatMessage[]> {
     const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(
-            `and(sender_id.eq.${currentUserId},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${currentUserId})`,
-        )
+        .or(`sender_id.eq.${correspondentId},receiver_id.eq.${correspondentId}`)
         .order('created_at');
 
     if (error) throw error;
@@ -20,11 +17,11 @@ export async function fetchMessages(
 export async function sendMessage(
     text: string,
     receiverId: string,
-    senderId: string,
 ): Promise<void> {
     const { error } = await supabase
         .from('messages')
-        .insert({ text, receiver_id: receiverId, sender_id: senderId });
+        .insert({ text, receiver_id: receiverId
+        });
     if (error) throw error;
 }
 
