@@ -10,14 +10,15 @@ import {
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 
-type Props = { messages: ChatMessage[];};
+type Props = { messages: ChatMessage[] };
 
 export default function ChatArea({ messages }: Props) {
+    console.log('ChatArea messages:', messages);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
-    if (!messages.length){
-        return <p>Пока нет сообщений</p>
+    if (!messages.length) {
+        return <p>Пока нет сообщений</p>;
     }
 
     return (
