@@ -1,8 +1,9 @@
 export type ChatMessage = {
     id: string;
-    text: string;
+    ciphertext: string;
     sender_id: string;
     receiver_id: string;
+    iv: string;
     created_at: string;
 };
 

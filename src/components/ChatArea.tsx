@@ -10,14 +10,14 @@ import {
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 
-type Props = { messages: ChatMessage[];};
+type Props = { messages: ChatMessage[] };
 
 export default function ChatArea({ messages }: Props) {
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
-    if (!messages.length){
-        return <p>Пока нет сообщений</p>
+    if (!messages.length) {
+        return <p>Пока нет сообщений</p>;
     }
 
     return (
@@ -37,7 +37,7 @@ export default function ChatArea({ messages }: Props) {
 
                                 <Bubble variant={isMe ? 'default' : 'muted'}>
                                     <BubbleContent className="text-sm break-words">
-                                        {m.text}
+                                        {m.ciphertext}
                                     </BubbleContent>
                                 </Bubble>
                             </MessageContent>
