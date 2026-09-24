@@ -1,5 +1,5 @@
 import { supabase } from '@/supabase';
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage, EncryptedMessage } from '@/lib/types';
 import { getOrCreateChatKey } from '@/lib/chatKeyManager';
 import { decryptText, encryptText } from '@/lib/crypto';
 
@@ -25,7 +25,8 @@ export async function fetchMessages(
                 );
                 return {
                     ...msg,
-                    text: plainText,
+                    ciphertext: plainText,
+                    // text: plainText,
                 };
             } catch (e) {
                 console.error('Ошибка дешифрования:', e);
@@ -65,25 +66,24 @@ export function subscribeToMessages(
         .on(
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'messages' },
-            async ({ new: message }) => {
-                const m = message as ChatMessage;
+            async ({ new: message }: { new: EncryptedMessage }) => {
                 if (
-                    m.sender_id === correspondentId ||
-                    m.receiver_id === correspondentId
+                    message.sender_id === correspondentId ||
+                    message.receiver_id === correspondentId
                 ) {
                     try {
                         const aesKey =
                             await getOrCreateChatKey(correspondentId);
                         const { plainText } = await decryptText(
                             aesKey,
-                            m.ciphertext,
-                            m.iv,
+                            message.ciphertext,
+                            message.iv,
                         );
 
                         onMessage({
-                            ...m,
-                            ciphertext: plainText,
-                        } as ChatMessage);
+                            ...message,
+                            text: plainText,
+                        });
                     } catch (e) {
                         console.error('Ошибка дешифрования в realtime:', e);
                     }

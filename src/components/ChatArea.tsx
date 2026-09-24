@@ -37,7 +37,7 @@ export default function ChatArea({ messages }: Props) {
 
                                 <Bubble variant={isMe ? 'default' : 'muted'}>
                                     <BubbleContent className="text-sm break-words">
-                                        {m.ciphertext}
+                                        {m.text}
                                     </BubbleContent>
                                 </Bubble>
                             </MessageContent>
