@@ -23,10 +23,10 @@ export async function fetchMessages(
                     msg.ciphertext,
                     msg.iv,
                 );
+                console.log('Дешифрованное сообщение:', plainText);
                 return {
                     ...msg,
-                    ciphertext: plainText,
-                    // text: plainText,
+                    text: plainText,
                 };
             } catch (e) {
                 console.error('Ошибка дешифрования:', e);
