@@ -18,7 +18,7 @@ export default function Chat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [text, setText] = useState('');
     const [correspondent, setCorrespondent] = useState<Profile | null>(null);
-    const {session} = useAuth();
+    const { session } = useAuth();
     const currentUserId = session!.user.id;
 
     useEffect(() => {
@@ -27,13 +27,13 @@ export default function Chat() {
             return;
         }
 
-        const receiverId = correspondent.id;
+        const correspondentId = correspondent.id;
 
         fetchMessages(correspondent.id).then(setMessages);
 
         const unsubscribe = subscribeToMessages(
             currentUserId,
-            receiverId,
+            correspondentId,
             (newMessage) => {
                 setMessages((prev) => [...prev, newMessage]);
             },
@@ -55,7 +55,9 @@ export default function Chat() {
         }
     }
 
-    const chatTitle = correspondent ? correspondent.email : 'Выберите собеседника...';
+    const chatTitle = correspondent
+        ? correspondent.email
+        : 'Выберите собеседника...';
 
     return (
         <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">

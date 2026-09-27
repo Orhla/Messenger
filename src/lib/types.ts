@@ -1,9 +1,17 @@
-export type ChatMessage = {
+export type BaseMessage = {
     id: string;
-    text: string;
     sender_id: string;
     receiver_id: string;
+    iv: string;
     created_at: string;
+};
+
+export type EncryptedMessage = BaseMessage & {
+    ciphertext: string;
+};
+
+export type ChatMessage = BaseMessage &  {
+    text: string;
 };
 
 export type Profile = {
