@@ -4,12 +4,16 @@ import { getOrCreateChatKey } from '@/lib/chatKeyManager';
 import { decryptText, encryptText } from '@/lib/crypto';
 
 export async function fetchMessages(
+    currentUserId: string,
     correspondentId: string,
 ): Promise<ChatMessage[]> {
     const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_id.eq.${correspondentId},receiver_id.eq.${correspondentId}`)
+        .or(
+            `and(sender_id.eq.${correspondentId},receiver_id.eq.${currentUserId}),` +
+                `and(sender_id.eq.${currentUserId},receiver_id.eq.${correspondentId})`,
+        )
         .order('created_at');
 
     if (error) throw error;
