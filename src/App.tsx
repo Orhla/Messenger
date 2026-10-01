@@ -6,6 +6,7 @@ import Chat from '@/components/Chat';
 import Settings from '@/components/Settings';
 import { Toast } from '@base-ui/react/toast';
 import SelectChat from '@/components/SelectChat';
+import NewRoom from '@/components/NewRoom.tsx';
 
 export default function App() {
     return (
@@ -25,6 +26,14 @@ export default function App() {
                             element={
                                 <ProtectedRoute>
                                     <SelectChat />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/chat/new"
+                            element={
+                                <ProtectedRoute>
+                                    <NewRoom />
                                 </ProtectedRoute>
                             }
                         />

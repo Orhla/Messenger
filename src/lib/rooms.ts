@@ -1,10 +1,26 @@
 import { supabase } from '@/supabase';
-import type { GroupChatMessage } from '@/lib/types';
+import type { GroupChatMessage, Profile } from '@/lib/types';
+import { getSession } from '@/lib/auth.ts';
 
 export async function createRoom(
     name: string,
-    creatorId: string,
+    initialMembers: Profile[],
 ): Promise<void> {
+
+    const session = await getSession()
+    if (!session || !session.user) {
+        throw new Error('User is not authenticated');
+    }
+    const creatorId = session?.user?.id;
+    console.warn(
+        'createRoom called with name:',
+        name,
+        'initialMembers:',
+        initialMembers,
+        'creator:',
+        session?.user,
+    );
+
     const { data: newRoom, error: roomError } = await supabase
         .from('rooms')
         .insert({
@@ -18,10 +34,16 @@ export async function createRoom(
     if (!newRoom)
         throw new Error('Не удалось получить ID созданного группового чата');
 
-    const { error: memberError } = await supabase.from('room_members').insert({
-        room_id: newRoom.id,
-        member_id: creatorId,
-    });
+    const memberIds = Array.from(
+        new Set([creatorId, ...initialMembers.map((m) => m.id)]),
+    );
+
+    const { error: memberError } = await supabase.from('room_members').insert(
+        memberIds.map((memberId) => ({
+            room_id: newRoom.id,
+            member_id: memberId,
+        })),
+    );
 
     if (memberError) throw memberError;
 }

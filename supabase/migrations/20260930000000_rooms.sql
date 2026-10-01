@@ -9,7 +9,7 @@ create table room_members (
   room_id uuid not null references rooms(id) on delete cascade,
   member_id uuid not null,
 
-  primary key (room_id, member_id) 
+  primary key (room_id, member_id)
 );
 
 create table room_messages (
@@ -84,8 +84,8 @@ create policy "room_messages: only members can write"
 on public.room_messages for insert
 to authenticated
 with check (
-  sender_id = auth.uid() 
-  and 
+  sender_id = auth.uid()
+  and
   exists (
     select 1 from public.room_members
     where room_members.room_id = room_messages.room_id
