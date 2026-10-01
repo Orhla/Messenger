@@ -16,53 +16,44 @@ import SearchUsers from '@/components/SearchUsers';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchProfileById } from '@/lib/profiles';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUUID(value: string) {
+    return typeof value === 'string' && UUID_REGEX.test(value);
+}
+
+
 export default function Chat() {
-    const { correspondentId } = useParams<{ correspondentId?: string }>();
+    const { correspondentId } = useParams<{ correspondentId: string }>();
     const navigate = useNavigate();
 
-    const [messages, setMessages] = useState<ChatMessage[] | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [text, setText] = useState('');
     const [correspondent, setCorrespondent] = useState<Profile | null>(null);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
     useEffect(() => {
-        if (!correspondentId) {
-            setCorrespondent(null);
-            return;
+        if (!correspondentId) throw new Error('correspondentId is required');
+        if (!isUUID(correspondentId)) {
+            console.error('Некорректный ID собеседника');
+            return
         }
-
-        const cachedUser = localStorage.getItem(
-            `user_cache_${correspondentId}`,
-        );
-        if (cachedUser) {
-            try {
-                setCorrespondent(JSON.parse(cachedUser));
-            } catch (e) {
-                console.error('Ошибка чтения кэша');
-            }
-        }
-
         fetchProfileById(correspondentId)
             .then((freshProfile) => {
                 setCorrespondent(freshProfile);
-                localStorage.setItem(
-                    `user_cache_${correspondentId}`,
-                    JSON.stringify(freshProfile),
-                );
             })
             .catch(() => {
                 console.error('Собеседник не найден');
-                if (!cachedUser) navigate('/chat');
             });
     }, [correspondentId, navigate]);
 
     useEffect(() => {
-        if (!correspondentId) {
-            setMessages(null);
+        if (!correspondentId) throw new Error('correspondentId is required');
+        if (!isUUID(correspondentId)) {
+            console.error('Некорректный ID собеседника');
             return;
         }
-
         fetchMessages(currentUserId, correspondentId).then(setMessages);
 
         const unsubscribe = subscribeToMessages(
@@ -92,14 +83,33 @@ export default function Chat() {
     }
 
     function handleSelectReceiver(profile: Profile) {
-        localStorage.setItem(
-            `user_cache_${profile.id}`,
-            JSON.stringify(profile),
-        );
         navigate(`/chat/${profile.id}`);
     }
 
     const chatTitle = correspondent ? correspondent.email : '';
+
+    if (correspondentId && !isUUID(correspondentId)) {
+        return (
+            <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">
+                <p>Некорректный ID собеседника. Выберите другого собеседника</p>
+                <SearchUsers onSelectReceiver={handleSelectReceiver} />
+            </div>
+        );
+    }
+
+    if (!correspondentId) {
+        throw new Error('correspondentId is required');
+    }
+
+    if (!correspondent) {
+        return (
+            <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">
+                <p>Собеседник не найден. Выберите другого собеседника</p>
+                <SearchUsers onSelectReceiver={handleSelectReceiver} />
+            </div>
+        );
+    }
+
 
     return (
         <div className="flex h-screen flex-col max-w-md mx-auto border-x bg-background">
@@ -113,16 +123,14 @@ export default function Chat() {
 
             <ChatArea messages={messages} />
 
-            {correspondentId && (
-                <ChatFooter
-                    buttonText="Отправить"
-                    inputPlaceholder="Напишите сообщение..."
-                    messageText={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onClick={send}
-                    onKeyDown={(e) => e.key === 'Enter' && send()}
-                />
-            )}
+            <ChatFooter
+                buttonText="Отправить"
+                inputPlaceholder="Напишите сообщение..."
+                messageText={text}
+                onChange={(e) => setText(e.target.value)}
+                onClick={send}
+                onKeyDown={(e) => e.key === 'Enter' && send()}
+            />
         </div>
     );
 }
