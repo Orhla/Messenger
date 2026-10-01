@@ -10,8 +10,16 @@ export type EncryptedMessage = BaseMessage & {
     ciphertext: string;
 };
 
-export type ChatMessage = BaseMessage &  {
+export type ChatMessage = BaseMessage & {
     text: string;
+};
+
+export type GroupChatMessage = {
+    id: string;
+    sender_id: string;
+    room_id: string;
+    text: string;
+    created_at: string;
 };
 
 export type Profile = {

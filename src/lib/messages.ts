@@ -46,8 +46,6 @@ export async function sendMessage(
     senderId: string,
     receiverId: string,
 ): Promise<void> {
-    const x = await supabase.auth.getUser();
-    console.log('Current user:', x.data.user);
     const aesKey = await getOrCreateChatKey(receiverId);
     const { ciphertext, iv } = await encryptText(aesKey, text);
     const { error } = await supabase.from('messages').insert({
