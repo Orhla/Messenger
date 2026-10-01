@@ -11,3 +11,15 @@ export async function searchProfiles(query: string): Promise<Profile[]> {
     if (error) throw error;
     return data;
 }
+
+export async function fetchProfileById(id: string): Promise<Profile> {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) throw error;
+
+    return data;
+}
