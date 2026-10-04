@@ -1,10 +1,12 @@
 import { AuthProvider } from '@/context/AuthContext';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthForm from '@/components/AuthForm';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Chat from '@/components/Chat';
 import Settings from '@/components/Settings';
 import { Toast } from '@base-ui/react/toast';
+import SelectChat from '@/components/SelectChat';
+import NewRoom from '@/components/NewRoom.tsx';
 
 export default function App() {
     return (
@@ -13,8 +15,31 @@ export default function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route path="/login" element={<AuthForm />} />
+
                         <Route
                             path="/"
+                            element={<Navigate to="/chat" replace />}
+                        />
+
+                        <Route
+                            path="/chat"
+                            element={
+                                <ProtectedRoute>
+                                    <SelectChat />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/chat/new"
+                            element={
+                                <ProtectedRoute>
+                                    <NewRoom />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/chat/:correspondentId"
                             element={
                                 <ProtectedRoute>
                                     <Chat />

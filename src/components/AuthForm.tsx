@@ -10,6 +10,7 @@ export default function AuthForm() {
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
 
     async function submit() {
         if (isLoading) return;
@@ -19,6 +20,7 @@ export default function AuthForm() {
         try {
             if (isSignUp) {
                 await signUp(email, password);
+                setIsEmailSent(true);
             } else {
                 await signIn(email, password);
             }
@@ -36,50 +38,61 @@ export default function AuthForm() {
                     {isSignUp ? 'Регистрация' : 'Вход'}
                 </h1>
 
-                <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    disabled={isLoading}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <Input
-                    type="password"
-                    placeholder="Пароль"
-                    value={password}
-                    disabled={isLoading}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && submit()}
-                />
+                {isEmailSent ? (
+                    <p className="text-sm text-muted-foreground text-center">
+                        Мы отправили ссылку для подтверждения на{' '}
+                        <strong>{email}</strong>.
+                    </p>
+                ) : (
+                    <>
+                        <Input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            disabled={isLoading}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <Input
+                            type="password"
+                            placeholder="Пароль"
+                            value={password}
+                            disabled={isLoading}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && submit()}
+                        />
 
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                        {error && (
+                            <p className="text-sm text-destructive">{error}</p>
+                        )}
 
-                <Button
-                    className="w-full"
-                    onClick={submit}
-                    disabled={isLoading}
-                >
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Пожалуйста, подождите
-                        </>
-                    ) : isSignUp ? (
-                        'Зарегистрироваться'
-                    ) : (
-                        'Войти'
-                    )}
-                </Button>
+                        <Button
+                            className="w-full"
+                            onClick={submit}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Пожалуйста, подождите
+                                </>
+                            ) : isSignUp ? (
+                                'Зарегистрироваться'
+                            ) : (
+                                'Войти'
+                            )}
+                        </Button>
 
-                <button
-                    className="w-full text-sm text-muted-foreground hover:underline"
-                    disabled={isLoading}
-                    onClick={() => setIsSignUp((v) => !v)}
-                >
-                    {isSignUp
-                        ? 'Уже есть аккаунт? Войти'
-                        : 'Нет аккаунта? Зарегистрироваться'}
-                </button>
+                        <button
+                            className="w-full text-sm text-muted-foreground hover:underline"
+                            disabled={isLoading}
+                            onClick={() => setIsSignUp((v) => !v)}
+                        >
+                            {isSignUp
+                                ? 'Уже есть аккаунт? Войти'
+                                : 'Нет аккаунта? Зарегистрироваться'}
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
