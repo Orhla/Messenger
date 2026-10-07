@@ -1,7 +1,7 @@
 'use client';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage, GroupChatMessage } from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -11,13 +11,12 @@ import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
 
-type Props = { messages: ChatMessage[] };
+type Props = { messages: (ChatMessage | GroupChatMessage)[] };
 
 export default function ChatArea({ messages }: Props) {
     console.log('ChatArea messages:', messages);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
-
 
     // СОСТОЯНИЕ 2: Собеседник выбран, но переписка пустая
     if (messages.length === 0) {
@@ -48,8 +47,16 @@ export default function ChatArea({ messages }: Props) {
                         <Message key={m.id} align={isMe ? 'end' : 'start'}>
                             <MessageContent>
                                 {!isMe && (
-                                    <MessageHeader className="text-xs text-muted-foreground mb-1 px-1">
-                                        {m.sender_id}
+                                    <MessageHeader className="text-xs text-muted-foreground mb-1 px-1 font-medium">
+                                        {'profiles' in m && m.profiles ? (
+                                            <span className="text-primary">
+                                                {m.profiles.email}
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground/80">
+                                                {m.sender_id}
+                                            </span>
+                                        )}
                                     </MessageHeader>
                                 )}
 

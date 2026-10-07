@@ -5,7 +5,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Chat from '@/components/Chat';
 import Settings from '@/components/Settings';
 import { Toast } from '@base-ui/react/toast';
-import SelectChat from '@/components/SelectChat';
 import NewRoom from '@/components/NewRoom.tsx';
 
 export default function App() {
@@ -25,12 +24,13 @@ export default function App() {
                             path="/chat"
                             element={
                                 <ProtectedRoute>
-                                    <SelectChat />
+                                    <Chat />
                                 </ProtectedRoute>
                             }
                         />
+
                         <Route
-                            path="/chat/new"
+                            path="/chat/room/new"
                             element={
                                 <ProtectedRoute>
                                     <NewRoom />
@@ -39,13 +39,23 @@ export default function App() {
                         />
 
                         <Route
-                            path="/chat/:correspondentId"
+                            path="/chat/direct/:chatId"
                             element={
                                 <ProtectedRoute>
                                     <Chat />
                                 </ProtectedRoute>
                             }
                         />
+
+                        <Route
+                            path="/chat/room/:chatId"
+                            element={
+                                <ProtectedRoute>
+                                    <Chat />
+                                </ProtectedRoute>
+                            }
+                        />
+
                         <Route
                             path="/settings"
                             element={

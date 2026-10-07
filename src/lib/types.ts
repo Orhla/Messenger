@@ -20,9 +20,22 @@ export type GroupChatMessage = {
     room_id: string;
     text: string;
     created_at: string;
+    profiles: {
+        email: string;
+    };
 };
 
 export type Profile = {
     id: string;
     email: string;
 };
+
+export type Room = {
+    id: string;
+    room_name: string;
+};
+
+export type ActiveChat =
+    | { kind: 'direct'; correspondent: Profile }
+    | { kind: 'room'; room: Room }
+    | null;
