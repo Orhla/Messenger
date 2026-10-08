@@ -21,7 +21,8 @@ import { useAuth } from '@/context/AuthContext';
 import SearchUsers from '@/components/SearchUsers';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProfileById } from '@/lib/profiles';
-import { addMember, getRoomMembers, getRooms } from '@/lib/rooms';
+import { getRooms } from '@/lib/rooms';
+import { useRoomMembers } from '@/hooks/useRoomMembers';
 import Sidebar from '@/components/Sidebar';
 import {
     fetchRoomMessages,
@@ -47,11 +48,13 @@ export default function Chat() {
     const [text, setText] = useState('');
     const [activeChat, setActiveChat] = useState<ActiveChat>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [members, setMembers] = useState<Profile[]>([]);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
     const isRoomType = location.pathname.includes('/chat/room/');
+    const { members, addMember } = useRoomMembers(
+        isRoomType && chatId && isUUID(chatId) ? chatId : null,
+    );
 
     // Загрузка сущности (Профиль или Комната) в зависимости от URL
     useEffect(() => {
@@ -62,26 +65,16 @@ export default function Chat() {
 
         setIsLoading(true);
         if (isRoomType) {
-            Promise.all([
-                getRooms().then((rooms) => rooms.find((r) => r.id === chatId)),
-                getRoomMembers(chatId).catch(() => []),
-            ])
-                .then(([foundRoom, roomMembers]) => {
-                    if (foundRoom) {
-                        setActiveChat({ kind: 'room', room: foundRoom });
-                        setMembers(roomMembers);
-                    } else {
-                        setActiveChat(null);
-                        setMembers([]);
-                    }
+            getRooms()
+                .then((rooms) => {
+                    const foundRoom = rooms.find((r) => r.id === chatId);
+                    setActiveChat(
+                        foundRoom ? { kind: 'room', room: foundRoom } : null,
+                    );
                 })
-                .catch(() => {
-                    setActiveChat(null);
-                    setMembers([]);
-                })
+                .catch(() => setActiveChat(null))
                 .finally(() => setIsLoading(false));
         } else {
-            setMembers([]);
             fetchProfileById(chatId)
                 .then((profile) => {
                     if (profile) {
@@ -142,22 +135,6 @@ export default function Chat() {
             if (unsubscribe) unsubscribe();
         };
     }, [chatId, currentUserId, isRoomType]);
-
-    // Добавление участника комнаты
-    const handleAddMember = async (profile: Profile) => {
-        if (!chatId || activeChat?.kind !== 'room') return;
-
-        try {
-            await addMember(chatId, profile.id);
-
-            setMembers((prev) => {
-                if (prev.some((m) => m.id === profile.id)) return prev;
-                return [...prev, profile];
-            });
-        } catch (error) {
-            console.error('Не удалось добавить участника в комнату:', error);
-        }
-    };
 
     // Отправка сообщения
     async function send() {
@@ -254,7 +231,7 @@ export default function Chat() {
                             onClick={signOut}
                             kind={activeChat?.kind}
                             members={members}
-                            onAddMember={handleAddMember}
+                            onAddMember={addMember}
                         />
 
                         {activeChat?.kind === 'direct' && (
