@@ -1,13 +1,12 @@
 import { supabase } from '@/supabase';
-import type { GroupChatMessage, Profile } from '@/lib/types';
+import type { Profile, Room } from '@/lib/types';
 import { getSession } from '@/lib/auth.ts';
 
 export async function createRoom(
     name: string,
     initialMembers: Profile[],
-): Promise<void> {
-
-    const session = await getSession()
+): Promise<Room> {
+    const session = await getSession();
     if (!session || !session.user) {
         throw new Error('User is not authenticated');
     }
@@ -27,7 +26,7 @@ export async function createRoom(
             room_name: name,
             creator: creatorId,
         })
-        .select('id')
+        .select('*')
         .single();
 
     if (roomError) throw roomError;
@@ -46,6 +45,10 @@ export async function createRoom(
     );
 
     if (memberError) throw memberError;
+    return {
+        id: newRoom.id,
+        room_name: newRoom.room_name,
+    };
 }
 
 export async function getRooms() {
@@ -70,70 +73,16 @@ export async function addMember(roomId: string, userId: string): Promise<void> {
 export async function getRoomMembers(roomId: string) {
     const { data, error } = await supabase
         .from('room_members')
-        .select('*')
+        .select('*, profiles:member_id(id, email)')
         .eq('room_id', roomId);
 
     if (error) throw error;
-    return data;
-}
-
-export async function fetchRoomMessages(roomId: string) {
-    const { data, error } = await supabase
-        .from('room_messages')
-        .select('*')
-        .eq('room_id', roomId)
-        .order('created_at');
-
-    if (error) throw error;
-    return data;
-}
-
-export async function sendRoomMessage(
-    roomId: string,
-    text: string,
-    senderId: string,
-): Promise<void> {
-    const { error } = await supabase.from('room_messages').insert({
-        room_id: roomId,
-        sender_id: senderId,
-        text: text,
-    });
-
-    if (error) throw error;
-}
-
-export function subscribeToRoomMessages(
-    roomId: string,
-    onMessage: (message: GroupChatMessage) => void,
-): () => void {
-    const channel = supabase
-        .channel(`room_messages:${roomId}`)
-        .on(
-            'postgres_changes',
-            {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'room_messages',
-                filter: `room_id=eq.${roomId}`,
-            },
-            async ({ new: message }: { new: GroupChatMessage }) => {
-                if (message && message.room_id === roomId) {
-                    try {
-                        const plainText = message.text;
-
-                        onMessage({
-                            ...message,
-                            text: plainText,
-                        });
-                    } catch (e) {
-                        console.error('Ошибка обработки сообщения:', e);
-                    }
-                }
-            },
-        )
-        .subscribe();
-
-    return () => {
-        channel.unsubscribe();
-    };
+    return (data
+        ?.map((item: any) => {
+            if (!item.profiles) return null;
+            return Array.isArray(item.profiles)
+                ? item.profiles[0]
+                : item.profiles;
+        })
+        .filter(Boolean) || []) as Profile[];
 }

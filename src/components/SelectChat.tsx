@@ -3,11 +3,11 @@ import SearchUsers from '@/components/SearchUsers.tsx';
 import type { Profile } from '@/lib/types.ts';
 import { useNavigate } from 'react-router-dom';
 
-export default function SelectChat(){
+export default function SelectChat() {
     const navigate = useNavigate();
 
     function handleSelectReceiver(profile: Profile) {
-        navigate(`/chat/${profile.id}`);
+        navigate(`/chat/direct/${profile.id}`);
     }
     return (
         <div className="flex flex-1 flex-col items-center justify-center p-8 text-center bg-muted/5">
