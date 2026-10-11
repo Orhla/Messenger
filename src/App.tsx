@@ -2,10 +2,12 @@ import { AuthProvider } from '@/context/AuthContext';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthForm from '@/components/AuthForm';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import Chat from '@/components/Chat';
 import Settings from '@/components/Settings';
 import { Toast } from '@base-ui/react/toast';
 import NewRoom from '@/components/NewRoom.tsx';
+import ChatLayout from '@/components/ChatLayout';
+import DirectChat from '@/components/DirectChat';
+import RoomChat from '@/components/RoomChat';
 
 export default function App() {
     return (
@@ -24,7 +26,9 @@ export default function App() {
                             path="/chat"
                             element={
                                 <ProtectedRoute>
-                                    <Chat />
+                                    <ChatLayout>
+                                        <DirectChat />
+                                    </ChatLayout>
                                 </ProtectedRoute>
                             }
                         />
@@ -42,7 +46,9 @@ export default function App() {
                             path="/chat/direct/:chatId"
                             element={
                                 <ProtectedRoute>
-                                    <Chat />
+                                    <ChatLayout>
+                                        <DirectChat />
+                                    </ChatLayout>
                                 </ProtectedRoute>
                             }
                         />
@@ -51,7 +57,9 @@ export default function App() {
                             path="/chat/room/:chatId"
                             element={
                                 <ProtectedRoute>
-                                    <Chat />
+                                    <ChatLayout>
+                                        <RoomChat />
+                                    </ChatLayout>
                                 </ProtectedRoute>
                             }
                         />

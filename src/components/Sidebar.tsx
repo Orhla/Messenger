@@ -6,20 +6,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import SearchUsers from '@/components/SearchUsers';
 
-import type { ActiveChat, Profile, Room } from '@/lib/types';
+import type { Profile, Room } from '@/lib/types';
 import { getRooms } from '@/lib/rooms';
 import { Link } from 'react-router-dom';
 
 type SidebarProps = {
     onSelectUser: (profile: Profile) => void;
     onSelectRoom: (room: Room) => void;
-    currentActive: ActiveChat;
+    currentActiveId?: string;
 };
 
 export default function Sidebar({
     onSelectUser,
     onSelectRoom,
-    currentActive,
+    currentActiveId,
 }: SidebarProps) {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [isLoadingRooms, setIsLoadingRooms] = useState(false);
@@ -80,8 +80,7 @@ export default function Sidebar({
                             <div className="space-y-1">
                                 {rooms.map((room) => {
                                     const isActive =
-                                        currentActive?.kind === 'room' &&
-                                        currentActive.room.id === room.id;
+                                        currentActiveId === room.id;
                                     return (
                                         <button
                                             key={room.id}
