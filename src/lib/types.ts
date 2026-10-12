@@ -12,6 +12,16 @@ export type EncryptedMessage = BaseMessage & {
 
 export type ChatMessage = BaseMessage & {
     text: string;
+    // приходит только из select с join; в realtime-payload его нет
+    profiles?: { email: string } | null;
+};
+
+export type Message = {
+    id: string;
+    senderId: string;
+    senderLabel: string; // email отправителя, а не UUID
+    text: string;
+    createdAt: string;
 };
 
 export type GroupChatMessage = {

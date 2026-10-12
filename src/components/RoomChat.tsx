@@ -1,16 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ChatMessage, GroupChatMessage, Profile, Room } from '@/lib/types';
+import type {
+    // ChatMessage,
+    GroupChatMessage,
+    Message,
+    Profile,
+    Room,
+} from '@/lib/types';
 import { signOut } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 // import { useParams } from 'react-router-dom';
 import { addMember, getRoomMembers, getRooms } from '@/lib/rooms';
 import {
-    fetchRoomMessages,
+    // fetchRoomMessages,
     sendRoomMessage,
     subscribeToRoomMessages,
 } from '@/lib/roomMessages';
+import {fetchMessages} from '@/lib/message.mapper.ts';
 import EmptyState from '@/components/EmptyState';
 import MembersPanel from '@/components/MembersPanel';
 import ChatView from '@/components/ChatView';
@@ -18,9 +25,7 @@ import ChatView from '@/components/ChatView';
 export default function RoomChat({chatId}: {chatId: string}) {
     // const { chatId } = useParams<{ chatId: string }>();
 
-    const [messages, setMessages] = useState<
-        (ChatMessage | GroupChatMessage)[]
-    >([]);
+    const [messages, setMessages] = useState<(Message)[]>([]);
     const [activeChat, setActiveChat] = useState<Room | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [members, setMembers] = useState<Profile[]>([]);
@@ -61,8 +66,8 @@ export default function RoomChat({chatId}: {chatId: string}) {
         setMessages([]);
         let unsubscribe: (() => void) | undefined;
 
-        fetchRoomMessages(chatId)
-            .then((roomMsgs: GroupChatMessage[]) => setMessages(roomMsgs))
+        fetchMessages({ type: "room", chatId })
+            .then((roomMsgs) => setMessages(roomMsgs))
             .catch(console.error);
 
         unsubscribe = subscribeToRoomMessages(

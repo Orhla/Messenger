@@ -4,11 +4,11 @@ import ChatHeader from '@/components/ChatHeader';
 import ChatArea from '@/components/ChatArea';
 import ChatFooter from '@/components/ChatFooter';
 import { useState } from 'react';
-import type { ChatMessage, GroupChatMessage } from '@/lib/types';
+import type { Message } from '@/lib/types';
 
 type Props = {
     chatTitle: string;
-    messages: (ChatMessage | GroupChatMessage)[];
+    messages: (Message)[];
     onSend: (text: string) => Promise<void>;
     onSignOut: () => void;
     children?: React.ReactNode;

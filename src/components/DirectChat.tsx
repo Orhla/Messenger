@@ -2,12 +2,18 @@
 
 import { useAuth } from '@/context/AuthContext';
 import {
-    fetchMessages,
+    // fetchMessages,
     sendMessage,
     subscribeToMessages,
 } from '@/lib/messages';
+import { fetchMessages } from '@/lib/message.mapper';
 import { fetchProfileById } from '@/lib/profiles';
-import type { ChatMessage, GroupChatMessage, Profile } from '@/lib/types';
+import type {
+    ChatMessage,
+    // GroupChatMessage,
+    Message,
+    Profile,
+} from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ChatView from '@/components/ChatView';
@@ -16,17 +22,16 @@ import { signOut } from '@/lib/auth';
 
 const UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// todo: use ValidChat component and test if this works )
 
 function isUUID(value: string) {
     return typeof value === 'string' && UUID_REGEX.test(value);
 }
-// todo: use ValidChat component and test if this works )
+
 export default function DirectChat() {
     const { chatId } = useParams<{ chatId: string }>();
 
-    const [messages, setMessages] = useState<
-        (ChatMessage | GroupChatMessage)[]
-    >([]);
+    const [messages, setMessages] = useState<(Message)[]>([]);
     const [activeChat, setActiveChat] = useState<Profile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { session } = useAuth();
@@ -58,8 +63,8 @@ export default function DirectChat() {
         setMessages([]);
         let unsubscribe: (() => void) | undefined;
 
-        fetchMessages(currentUserId, chatId)
-            .then((directMsgs: ChatMessage[]) => setMessages(directMsgs))
+        fetchMessages({type: "direct", currentUserId, correspondentId: chatId})
+            .then((directMsgs: Message[]) => setMessages(directMsgs))
             .catch(console.error);
 
         unsubscribe = subscribeToMessages(
