@@ -2,13 +2,9 @@
 
 import Sidebar from '@/components/Sidebar';
 import type { Profile, Room } from '@/lib/types';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from 'react-router-dom';
 
-type Props = {
-    children: React.ReactNode;
-};
-
-export default function ChatLayout({ children }: Props) {
+export default function ChatLayout() {
     const { chatId } = useParams<{ chatId: string }>();
     const navigate = useNavigate();
 
@@ -28,7 +24,7 @@ export default function ChatLayout({ children }: Props) {
                 onSelectRoom={handleSelectRoom}
             />
             <main className="flex-1 flex h-full flex-col min-w-0 border-l">
-                {children}
+                <Outlet />
             </main>
         </div>
     );

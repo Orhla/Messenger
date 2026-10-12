@@ -20,7 +20,7 @@ const UUID_REGEX =
 function isUUID(value: string) {
     return typeof value === 'string' && UUID_REGEX.test(value);
 }
-
+// todo: use ValidChat component and test if this works )
 export default function DirectChat() {
     const { chatId } = useParams<{ chatId: string }>();
 

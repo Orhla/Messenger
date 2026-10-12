@@ -7,7 +7,8 @@ import { Toast } from '@base-ui/react/toast';
 import NewRoom from '@/components/NewRoom.tsx';
 import ChatLayout from '@/components/ChatLayout';
 import DirectChat from '@/components/DirectChat';
-import RoomChat from '@/components/RoomChat';
+// import RoomChat from '@/components/RoomChat';
+import ValidChat from '@/components/ValidChat.tsx';
 
 export default function App() {
     return (
@@ -23,43 +24,34 @@ export default function App() {
                         />
 
                         <Route
-                            path="/chat"
                             element={
                                 <ProtectedRoute>
-                                    <ChatLayout>
-                                        <DirectChat />
-                                    </ChatLayout>
+                                    <ChatLayout />
                                 </ProtectedRoute>
                             }
-                        />
+                        >
+                            <Route
+                                path="/chat"
+                                element={
+                                    /*todo: use Empty state or any suitable component*/
+                                    <DirectChat />
+                                }
+                            />
+                            <Route
+                                path="/chat/direct/:chatId"
+                                element={<DirectChat />}
+                            />
+                            <Route
+                                path="/chat/room/:chatId"
+                                element={<ValidChat />}
+                            />
+                        </Route>
 
                         <Route
                             path="/chat/room/new"
                             element={
                                 <ProtectedRoute>
                                     <NewRoom />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/chat/direct/:chatId"
-                            element={
-                                <ProtectedRoute>
-                                    <ChatLayout>
-                                        <DirectChat />
-                                    </ChatLayout>
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/chat/room/:chatId"
-                            element={
-                                <ProtectedRoute>
-                                    <ChatLayout>
-                                        <RoomChat />
-                                    </ChatLayout>
                                 </ProtectedRoute>
                             }
                         />

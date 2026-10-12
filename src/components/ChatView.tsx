@@ -9,7 +9,7 @@ import type { ChatMessage, GroupChatMessage } from '@/lib/types';
 type Props = {
     chatTitle: string;
     messages: (ChatMessage | GroupChatMessage)[];
-    onSend: (text: string) => void | Promise<void>;
+    onSend: (text: string) => Promise<void>;
     onSignOut: () => void;
     children?: React.ReactNode;
 };
@@ -23,11 +23,11 @@ export default function ChatView({
 }: Props) {
     const [text, setText] = useState('');
 
-    const handleSend = () => {
+    const handleSend = async () => {
         const trimmedText = text.trim();
         if (!trimmedText) return;
 
-        onSend(trimmedText);
+        await onSend(trimmedText);
         setText('');
     };
 

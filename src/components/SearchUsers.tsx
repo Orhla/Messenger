@@ -17,27 +17,28 @@ export default function SearchUsers({
     onSelect,
     excludeIds = [],
     placeholder = 'Найти пользователя...',
-    className = 'relative',
+    className = '',
 }: Props) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Profile[]>([]);
 
+    const filteredSearchResults = searchResults.filter((profile) => !excludeIds.includes(profile.id));
     useEffect(() => {
         if (!searchQuery.trim()) {
             setSearchResults([]);
             return;
         }
-        let cancelled = true;
+        let cancelled = false;
 
         const delayDebounceFn = setTimeout(() => {
             searchProfiles(searchQuery)
                 .then((results) => {
-                    if (!cancelled) return;
+                    if (cancelled) return;
 
-                    const filteredResults = results.filter(
-                        (profile) => !excludeIds.includes(profile.id),
-                    );
-                    setSearchResults(filteredResults);
+                    // const filteredResults = results.filter(
+                    //     (profile) => !excludeIds.includes(profile.id),
+                    // );
+                    setSearchResults(results);
                 })
                 .catch((error) => {
                     console.error('Ошибка при поиске пользователей:', error);
@@ -46,19 +47,19 @@ export default function SearchUsers({
         }, 300);
 
         return () => {
-            cancelled = false;
+            cancelled = true;
             clearTimeout(delayDebounceFn);
         };
     }, [searchQuery]);
 
-    const handleSelectReceiver = (profile: Profile) => {
+    const handleSelectUser = (profile: Profile) => {
         onSelect(profile);
         setSearchQuery('');
         setSearchResults([]);
     };
 
     return (
-        <div className={className}>
+        <div className={`relative ${className}`}>
             <Input
                 type="text"
                 placeholder={placeholder}
@@ -68,14 +69,14 @@ export default function SearchUsers({
             />
 
             {/* Выпадающий список результатов поиска */}
-            {searchResults.length > 0 && (
-                <div className="absolute left-3 right-3 mt-1 max-h-60 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
+            {filteredSearchResults.length > 0 && (
+                <div className="absolute mt-1 max-h-60 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95">
                     <div className="p-1">
-                        {searchResults.map((profile) => (
+                        {filteredSearchResults.map((profile) => (
                             <Button
                                 key={profile.id}
                                 variant="ghost"
-                                onClick={() => handleSelectReceiver(profile)}
+                                onClick={() => handleSelectUser(profile)}
                                 className="w-full justify-start flex flex-col items-start h-auto px-4 py-2 font-normal"
                             >
                                 <span className="font-medium text-sm text-foreground">
