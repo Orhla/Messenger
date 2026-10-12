@@ -48,7 +48,7 @@ export default function Sidebar({
                     value="direct"
                     className="flex flex-1 flex-col m-0 p-4"
                 >
-                    <SearchUsers onSelectReceiver={onSelectUser} />
+                    <SearchUsers onSelect={onSelectUser} />
                 </TabsContent>
 
                 {/* Вкладка "Комнаты" */}

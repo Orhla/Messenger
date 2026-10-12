@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/AuthContext';
 
 export default function NewRoom() {
     const [initialMembers, setInitialMembers] = useState<Profile[]>([]);
@@ -18,11 +19,19 @@ export default function NewRoom() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
+    const { session } = useAuth();
+    const currentUserId = session!.user.id;
+
     const handleRemoveMember = (profileId: string) => {
         setInitialMembers((prev) =>
             prev.filter((member) => member.id !== profileId),
         );
     };
+
+    const excludeIds = [
+        currentUserId,
+        ...initialMembers.map((member) => member.id),
+    ].filter(Boolean);
 
     const handleSelectMember = (profile: Profile) => {
         setInitialMembers((prev) => {
@@ -38,7 +47,7 @@ export default function NewRoom() {
         try {
             setIsLoading(true);
             const newRoom = await createRoom(roomName, initialMembers);
-            navigate(`/chat/room/${newRoom.id}`); // или на другой ваш роут со списком комнат
+            navigate(`/chat/room/${newRoom.id}`);
         } catch (error) {
             console.error('Ошибка при создании комнаты:', error);
         } finally {
@@ -89,7 +98,10 @@ export default function NewRoom() {
                         <Label>Добавить участников</Label>
 
                         {/* Поиск пользователей */}
-                        <SearchUsers onSelectReceiver={handleSelectMember} />
+                        <SearchUsers
+                            onSelect={handleSelectMember}
+                            excludeIds={excludeIds}
+                        />
 
                         {/* Список выбранных участников */}
                         <div className="space-y-2">

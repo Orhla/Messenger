@@ -14,6 +14,8 @@ type Props = {
 export default function MembersPanel({ members, onAddMember }: Props) {
     const [showManagePanel, setShowManagePanel] = useState(false);
 
+    const memberIds = members.map((member) => member.id);
+
     return (
         <div className="relative inline-block">
             <Button
@@ -38,7 +40,10 @@ export default function MembersPanel({ members, onAddMember }: Props) {
                                 <UserPlus className="h-3.5 w-3.5" />
                                 <span>Пригласить пользователя</span>
                             </div>
-                            <SearchUsers onSelectReceiver={onAddMember} />
+                            <SearchUsers
+                                onSelect={onAddMember}
+                                excludeIds={memberIds}
+                            />
                         </div>
 
                         {/* Список людей в комнате */}

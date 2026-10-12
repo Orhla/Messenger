@@ -9,7 +9,7 @@ import {
 import { fetchProfileById } from '@/lib/profiles';
 import type { ChatMessage, GroupChatMessage, Profile } from '@/lib/types';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import ChatView from '@/components/ChatView';
 import EmptyState from '@/components/EmptyState';
 import { signOut } from '@/lib/auth';

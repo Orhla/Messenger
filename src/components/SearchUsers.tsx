@@ -7,10 +7,18 @@ import type { Profile } from '@/lib/types';
 import { searchProfiles } from '@/lib/profiles';
 
 type Props = {
-    onSelectReceiver: (profile: Profile) => void;
+    onSelect: (profile: Profile) => void;
+    excludeIds?: string[];
+    placeholder?: string;
+    className?: string;
 };
 
-export default function SearchUsers({ onSelectReceiver }: Props) {
+export default function SearchUsers({
+    onSelect,
+    excludeIds = [],
+    placeholder = 'Найти пользователя...',
+    className = 'relative',
+}: Props) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Profile[]>([]);
 
@@ -19,20 +27,41 @@ export default function SearchUsers({ onSelectReceiver }: Props) {
             setSearchResults([]);
             return;
         }
-        searchProfiles(searchQuery).then(setSearchResults);
+        let cancelled = true;
+
+        const delayDebounceFn = setTimeout(() => {
+            searchProfiles(searchQuery)
+                .then((results) => {
+                    if (!cancelled) return;
+
+                    const filteredResults = results.filter(
+                        (profile) => !excludeIds.includes(profile.id),
+                    );
+                    setSearchResults(filteredResults);
+                })
+                .catch((error) => {
+                    console.error('Ошибка при поиске пользователей:', error);
+                    setSearchResults([]);
+                });
+        }, 300);
+
+        return () => {
+            cancelled = false;
+            clearTimeout(delayDebounceFn);
+        };
     }, [searchQuery]);
 
     const handleSelectReceiver = (profile: Profile) => {
-        onSelectReceiver(profile);
+        onSelect(profile);
         setSearchQuery('');
         setSearchResults([]);
     };
 
     return (
-        <div className="p-3 border-b bg-muted/30 relative z-10">
+        <div className={className}>
             <Input
                 type="text"
-                placeholder="Найти пользователя..."
+                placeholder={placeholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
