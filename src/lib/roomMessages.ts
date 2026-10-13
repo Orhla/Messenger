@@ -1,19 +1,19 @@
 import { supabase } from '@/supabase';
 import type { GroupChatMessage } from '@/lib/types';
 
-export async function fetchRoomMessages(
-    chatId: string,
-): Promise<GroupChatMessage[]> {
-    const { data, error } = await supabase
-        .from('room_messages')
-        .select('*, profiles(email)')
-        .eq('room_id', chatId)
-        .order('created_at');
-
-    if (error) throw error;
-
-    return data;
-}
+// export async function fetchRoomMessages(
+//     chatId: string,
+// ): Promise<GroupChatMessage[]> {
+//     const { data, error } = await supabase
+//         .from('room_messages')
+//         .select('*, profiles(email)')
+//         .eq('room_id', chatId)
+//         .order('created_at');
+//
+//     if (error) throw error;
+//
+//     return data;
+// }
 
 export async function sendRoomMessage(
     text: string,

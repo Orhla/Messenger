@@ -2,10 +2,13 @@ import { AuthProvider } from '@/context/AuthContext';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthForm from '@/components/AuthForm';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import Chat from '@/components/Chat';
 import Settings from '@/components/Settings';
 import { Toast } from '@base-ui/react/toast';
 import NewRoom from '@/components/NewRoom.tsx';
+import ChatLayout from '@/components/ChatLayout';
+import DirectChat from '@/components/DirectChat';
+// import RoomChat from '@/components/RoomChat';
+import ValidChat from '@/components/ValidChat.tsx';
 
 export default function App() {
     return (
@@ -21,37 +24,34 @@ export default function App() {
                         />
 
                         <Route
-                            path="/chat"
                             element={
                                 <ProtectedRoute>
-                                    <Chat />
+                                    <ChatLayout />
                                 </ProtectedRoute>
                             }
-                        />
+                        >
+                            <Route
+                                path="/chat"
+                                element={
+                                    /*todo: use Empty state or any suitable component*/
+                                    <DirectChat />
+                                }
+                            />
+                            <Route
+                                path="/chat/direct/:chatId"
+                                element={<DirectChat />}
+                            />
+                            <Route
+                                path="/chat/room/:chatId"
+                                element={<ValidChat />}
+                            />
+                        </Route>
 
                         <Route
                             path="/chat/room/new"
                             element={
                                 <ProtectedRoute>
                                     <NewRoom />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/chat/direct/:chatId"
-                            element={
-                                <ProtectedRoute>
-                                    <Chat />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/chat/room/:chatId"
-                            element={
-                                <ProtectedRoute>
-                                    <Chat />
                                 </ProtectedRoute>
                             }
                         />

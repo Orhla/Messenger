@@ -1,7 +1,7 @@
 'use client';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { ChatMessage, GroupChatMessage } from '@/lib/types';
+import type { Message as MessageType} from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -11,7 +11,7 @@ import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
 
-type Props = { messages: (ChatMessage | GroupChatMessage)[] };
+type Props = { messages: MessageType[] };
 
 export default function ChatArea({ messages }: Props) {
     console.log('ChatArea messages:', messages);
@@ -41,22 +41,16 @@ export default function ChatArea({ messages }: Props) {
         <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
                 {messages.map((m) => {
-                    const isMe = m.sender_id === currentUserId;
+                    const isMe = m.senderId === currentUserId;
 
                     return (
                         <Message key={m.id} align={isMe ? 'end' : 'start'}>
                             <MessageContent>
                                 {!isMe && (
                                     <MessageHeader className="text-xs text-muted-foreground mb-1 px-1 font-medium">
-                                        {'profiles' in m && m.profiles ? (
                                             <span className="text-primary">
-                                                {m.profiles.email}
+                                                {m.senderLabel}
                                             </span>
-                                        ) : (
-                                            <span className="text-muted-foreground/80">
-                                                {m.sender_id}
-                                            </span>
-                                        )}
                                     </MessageHeader>
                                 )}
 
