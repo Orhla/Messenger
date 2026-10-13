@@ -111,8 +111,6 @@ export async function decryptText(
     );
 
     const decoded = new TextDecoder().decode(decryptedBuffer);
-    console.log("ciphertext:", ciphertext);
-    console.log("decrypted text:", decoded);
 
     return {
         plainText: decoded,
