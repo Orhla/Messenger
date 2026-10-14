@@ -8,3 +8,22 @@ export function getUsername(): string {
     localStorage.setItem('username', name);
     return name;
 }
+
+export function arrayBufferToBase64(arrayBuf: ArrayBuffer): string {
+    const bytes = new Uint8Array(arrayBuf);
+    const binString = Array.from(bytes, (byte) =>
+        String.fromCodePoint(byte),
+    ).join('');
+    return btoa(binString);
+}
+
+export function base64ToArrayBuffer(base64String: string): ArrayBuffer {
+    const binString = atob(base64String);
+    const bytes = new Uint8Array(binString.length);
+
+    for (let i = 0; i < binString.length; i++) {
+        bytes[i] = binString.charCodeAt(i);
+    }
+
+    return bytes.buffer;
+}

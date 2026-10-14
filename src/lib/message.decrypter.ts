@@ -8,8 +8,8 @@ export async function decryptMessageText(
     try {
         const { plainText } = await decryptText(aesKey, ciphertext, iv);
         return plainText;
-    } catch (e) {
-        console.error('Ошибка дешифрования сообщения');
+    } catch {
+        console.error(`Ошибка дешифрования сообщения`);
         return 'Ошибка дешифрования сообщения';
     }
 }

@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import type { Message, Profile, Room } from '@/lib/types';
 import { signOut } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
-import { addMember, getRoomMembers, getRooms } from '@/lib/rooms';
+import { addMember, removeMember, getRoomMembers, getRooms } from '@/lib/rooms'; // Импортируем removeMember для отката
 import {
     fetchMessages,
     sendMessage,
     subscribeToMessages,
 } from '@/lib/message.mapper.ts';
+import { shareRoomKey } from '@/lib/roomKeyManager'; // Импортируем шеринг ключей
 import EmptyState from '@/components/EmptyState';
 import MembersPanel from '@/components/MembersPanel';
 import ChatView from '@/components/ChatView';
+import { toast } from '@/components/ui/toast';
 
 export default function RoomChat({ chatId }: { chatId: string }) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -98,12 +100,38 @@ export default function RoomChat({ chatId }: { chatId: string }) {
         try {
             await addMember(chatId, profile.id);
 
-            setMembers((prev) => {
-                if (prev.some((m) => m.id === profile.id)) return prev;
-                return [...prev, profile];
-            });
+            try {
+                await shareRoomKey(chatId, currentUserId, profile.id);
+
+                setMembers((prev) => {
+                    if (prev.some((m) => m.id === profile.id)) return prev;
+                    return [...prev, profile];
+                });
+            } catch (cryptoError) {
+                console.error(
+                    'Ошибка при передаче ключа комнаты:',
+                    cryptoError,
+                );
+
+                await removeMember(chatId, profile.id);
+
+                toast.add({
+                    type: 'destructive',
+                    title: 'Ошибка безопасности',
+                    description:
+                        'Не удалось передать ключ шифрования. Пользователь не добавлен.',
+                });
+            }
         } catch (error) {
-            console.error('Не удалось добавить участника в комнату:', error);
+            console.error(
+                'Не удалось добавить участника в комнату на уровне БД',
+                error,
+            );
+            toast.add({
+                type: 'destructive',
+                title: 'Ошибка безопасности',
+                description: 'Ошибка при добавлении участника в комнату.',
+            });
         }
     };
 

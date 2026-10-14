@@ -11,6 +11,8 @@ import {
 } from '@/lib/supabase/messages.ts';
 import { getOrCreateChatKey } from '@/lib/chatKeyManager';
 import { encryptText } from '@/lib/crypto';
+import { encryptRoomMessage } from '@/lib/roomCrypto';
+import { getRoomKey } from '@/lib/roomKeyManager';
 
 type FetchMessagesParams =
     | {
@@ -50,13 +52,7 @@ export async function fetchMessages(
 
     if (params.type === 'room') {
         const messages = await fetchRoomMessages(params.chatId);
-        return messages.map((msg) => ({
-            id: msg.id,
-            senderId: msg.sender_id,
-            senderLabel: msg?.profiles?.email || 'Unknown',
-            text: msg.text,
-            createdAt: msg.created_at,
-        }));
+        return messages;
     }
 
     throw new Error('Invalid parameters');
@@ -77,8 +73,16 @@ export async function sendMessage(params: SendMessageParams): Promise<void> {
     }
 
     if (params.type === 'room') {
+        const roomKey = await getRoomKey(params.chatId, params.senderId);
+
+        const { ciphertext, iv } = await encryptRoomMessage(
+            params.text,
+            roomKey,
+        );
+
         await insertRoomMessage({
-            text: params.text,
+            ciphertext,
+            iv,
             room_id: params.chatId,
             sender_id: params.senderId,
         });

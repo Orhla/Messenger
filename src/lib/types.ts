@@ -24,15 +24,23 @@ export type Message = {
     createdAt: string;
 };
 
+export type DbRoomKeyRow = {
+    room_id: string;
+    member_id: string;
+    wrapped_by: string;
+    wrapped_key: string;
+    iv: string;
+};
+
 export type GroupChatMessage = {
     id: string;
-    sender_id: string;
     room_id: string;
-    text: string;
+    sender_id: string;
+    senderLabel: string;
+    ciphertext: string;
+    iv: string;
     created_at: string;
-    profiles: {
-        email: string;
-    };
+    profiles?: { email: string };
 };
 
 export type Profile = {
@@ -44,8 +52,3 @@ export type Room = {
     id: string;
     room_name: string;
 };
-
-export type ActiveChat =
-    | { kind: 'direct'; correspondent: Profile }
-    | { kind: 'room'; room: Room }
-    | null;
