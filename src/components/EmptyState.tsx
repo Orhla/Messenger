@@ -1,5 +1,3 @@
-'use client';
-
 type Props = {
     loading?: boolean;
     invalid?: boolean;

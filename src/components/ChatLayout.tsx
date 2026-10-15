@@ -1,5 +1,3 @@
-'use client';
-
 import Sidebar from '@/components/Sidebar';
 import type { Profile, Room } from '@/lib/types';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';

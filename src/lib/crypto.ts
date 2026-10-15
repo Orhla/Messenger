@@ -1,21 +1,4 @@
-export function arrayBufferToBase64(arrayBuf: ArrayBuffer): string {
-    const bytes = new Uint8Array(arrayBuf);
-    const binString = Array.from(bytes, (byte) =>
-        String.fromCodePoint(byte),
-    ).join('');
-    return btoa(binString);
-}
-
-export function base64ToArrayBuffer(base64String: string): ArrayBuffer {
-    const binString = atob(base64String);
-    const bytes = new Uint8Array(binString.length);
-
-    for (let i = 0; i < binString.length; i++) {
-        bytes[i] = binString.charCodeAt(i);
-    }
-
-    return bytes.buffer;
-}
+import { arrayBufferToBase64, base64ToArrayBuffer } from '@/lib/utils';
 
 export async function generateKeyPair(): Promise<CryptoKeyPair> {
     return crypto.subtle.generateKey(
@@ -111,8 +94,6 @@ export async function decryptText(
     );
 
     const decoded = new TextDecoder().decode(decryptedBuffer);
-    console.log("ciphertext:", ciphertext);
-    console.log("decrypted text:", decoded);
 
     return {
         plainText: decoded,

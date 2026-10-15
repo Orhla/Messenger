@@ -7,8 +7,9 @@ import { Toast } from '@base-ui/react/toast';
 import NewRoom from '@/components/NewRoom.tsx';
 import ChatLayout from '@/components/ChatLayout';
 import DirectChat from '@/components/DirectChat';
-// import RoomChat from '@/components/RoomChat';
 import ValidChat from '@/components/ValidChat.tsx';
+import EmptyState from '@/components/EmptyState';
+import RoomChat from '@/components/RoomChat';
 
 export default function App() {
     return (
@@ -33,17 +34,30 @@ export default function App() {
                             <Route
                                 path="/chat"
                                 element={
-                                    /*todo: use Empty state or any suitable component*/
-                                    <DirectChat />
+                                    <div className="flex flex-1 h-full w-full min-h-0 bg-background">
+                                        <EmptyState />
+                                    </div>
                                 }
                             />
                             <Route
                                 path="/chat/direct/:chatId"
-                                element={<DirectChat />}
+                                element={
+                                    <ValidChat>
+                                        {(validId) => (
+                                            <DirectChat chatId={validId} />
+                                        )}
+                                    </ValidChat>
+                                }
                             />
                             <Route
                                 path="/chat/room/:chatId"
-                                element={<ValidChat />}
+                                element={
+                                    <ValidChat>
+                                        {(validId) => (
+                                            <RoomChat chatId={validId} />
+                                        )}
+                                    </ValidChat>
+                                }
                             />
                         </Route>
 
