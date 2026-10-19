@@ -33,7 +33,6 @@ export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
                 return {
                     id: msg.id,
                     senderId: msg.sender_id,
-                    senderLabel: msg.profiles?.email || msg.sender_id,
                     text: plainText,
                     createdAt: msg.created_at,
                 };
@@ -45,7 +44,6 @@ export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
             return {
                 id: msg.id,
                 senderId: msg.sender_id,
-                senderLabel: msg.profiles?.email || msg.sender_id,
                 text: '🔒 [Сообщение зашифровано. Ключ отсутствует]',
                 createdAt: msg.created_at,
             };
@@ -113,7 +111,6 @@ export function subscribeToRoomMessages(
                 onMessage({
                     id: message.id,
                     senderId: message.sender_id,
-                    senderLabel: message.profiles?.email || message.sender_id,
                     text: plainText,
                     createdAt: message.created_at,
                 });

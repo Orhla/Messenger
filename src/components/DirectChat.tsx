@@ -109,6 +109,7 @@ export default function DirectChat({ chatId }: Props) {
         <ChatView
             chatTitle={activeChat.email}
             messages={messages}
+            members={activeChat ? [activeChat] : []}
             onSend={send}
             onSignOut={signOut}
         />

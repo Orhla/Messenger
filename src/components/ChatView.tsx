@@ -2,11 +2,12 @@ import ChatHeader from '@/components/ChatHeader';
 import ChatArea from '@/components/ChatArea';
 import ChatFooter from '@/components/ChatFooter';
 import { useState } from 'react';
-import type { Message } from '@/lib/types';
+import type { Message, Profile } from '@/lib/types';
 
 type Props = {
     chatTitle: string;
     messages: Message[];
+    members: Profile[];
     onSend: (text: string) => Promise<void>;
     onSignOut: () => void;
     children?: React.ReactNode;
@@ -15,6 +16,7 @@ type Props = {
 export default function ChatView({
     chatTitle,
     messages,
+    members,
     onSend,
     onSignOut,
     children,
@@ -45,7 +47,7 @@ export default function ChatView({
                 {children}
             </ChatHeader>
 
-            <ChatArea messages={messages} />
+            <ChatArea messages={messages} members={members} />
 
             <ChatFooter
                 buttonText="Отправить"

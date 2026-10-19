@@ -88,10 +88,6 @@ export function subscribeToDirectMessages(
                     const mappedMessage: Message = {
                         id: message.id,
                         senderId: message.sender_id,
-                        senderLabel:
-                            message.sender_id === currentUserId
-                                ? 'Вы'
-                                : correspondentId,
                         text: plainText,
                         createdAt: message.created_at,
                     };

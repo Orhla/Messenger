@@ -19,7 +19,6 @@ export type ChatMessage = BaseMessage & {
 export type Message = {
     id: string;
     senderId: string;
-    senderLabel: string; // email отправителя, а не UUID
     text: string;
     createdAt: string;
 };

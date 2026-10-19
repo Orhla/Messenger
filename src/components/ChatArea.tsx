@@ -1,5 +1,5 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Message as MessageType } from '@/lib/types';
+import type { Message as MessageType, Profile } from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -9,9 +9,9 @@ import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
 
-type Props = { messages: MessageType[] };
+type Props = { messages: MessageType[]; members: Profile[] };
 
-export default function ChatArea({ messages }: Props) {
+export default function ChatArea({ messages, members }: Props) {
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
@@ -40,13 +40,19 @@ export default function ChatArea({ messages }: Props) {
                 {messages.map((m) => {
                     const isMe = m.senderId === currentUserId;
 
+                    const senderProfile = members.find(
+                        (member) => member.id === m.senderId,
+                    );
+                    const senderLabel =
+                        senderProfile?.email || 'Неизвестный пользователь';
+
                     return (
                         <Message key={m.id} align={isMe ? 'end' : 'start'}>
                             <MessageContent>
                                 {!isMe && (
                                     <MessageHeader className="text-xs text-muted-foreground mb-1 px-1 font-medium">
                                         <span className="text-primary">
-                                            {m.senderLabel}
+                                            {senderLabel}
                                         </span>
                                     </MessageHeader>
                                 )}

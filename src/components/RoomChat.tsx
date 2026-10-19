@@ -76,13 +76,6 @@ export default function RoomChat({ chatId }: { chatId: string }) {
                     if (prev.some((msg) => msg.id === newMessage.id))
                         return prev;
 
-                    if (
-                        newMessage.senderId === currentUserId &&
-                        session?.user?.email
-                    ) {
-                        newMessage.senderLabel = session.user.email;
-                    }
-
                     return [...prev, newMessage];
                 });
             },
@@ -163,6 +156,7 @@ export default function RoomChat({ chatId }: { chatId: string }) {
         <ChatView
             chatTitle={activeChat.room_name}
             messages={messages}
+            members={members}
             onSend={send}
             onSignOut={signOut}
         >
