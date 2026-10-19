@@ -1,5 +1,3 @@
-'use client';
-
 import ChatHeader from '@/components/ChatHeader';
 import ChatArea from '@/components/ChatArea';
 import ChatFooter from '@/components/ChatFooter';
@@ -8,7 +6,7 @@ import type { Message } from '@/lib/types';
 
 type Props = {
     chatTitle: string;
-    messages: (Message)[];
+    messages: Message[];
     onSend: (text: string) => Promise<void>;
     onSignOut: () => void;
     children?: React.ReactNode;

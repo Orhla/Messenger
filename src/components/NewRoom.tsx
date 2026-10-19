@@ -1,6 +1,6 @@
 import { useState, type SubmitEventHandler } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserPlus, X, Hash } from 'lucide-react';
+import { ArrowLeft, UserPlus, X, Hash, AlertCircle } from 'lucide-react';
 
 import SearchUsers from '@/components/SearchUsers.tsx';
 import type { Profile } from '@/lib/types.ts';
@@ -12,11 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
+import { createRoomKeys } from '@/lib/roomKeyManager';
 
 export default function NewRoom() {
     const [initialMembers, setInitialMembers] = useState<Profile[]>([]);
     const [roomName, setRoomName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [errorText, setErrorText] = useState<string | null>(null); // Стейт для вывода ошибок крипты
     const navigate = useNavigate();
 
     const { session } = useAuth();
@@ -26,6 +28,7 @@ export default function NewRoom() {
         setInitialMembers((prev) =>
             prev.filter((member) => member.id !== profileId),
         );
+        setErrorText(null);
     };
 
     const excludeIds = [
@@ -34,6 +37,7 @@ export default function NewRoom() {
     ].filter(Boolean);
 
     const handleSelectMember = (profile: Profile) => {
+        setErrorText(null);
         setInitialMembers((prev) => {
             if (prev.some((member) => member.id === profile.id)) return prev;
             return [...prev, profile];
@@ -46,10 +50,22 @@ export default function NewRoom() {
 
         try {
             setIsLoading(true);
+            setErrorText(null);
+
             const newRoom = await createRoom(roomName, initialMembers);
+            const allMemberIds = [
+                currentUserId,
+                ...initialMembers.map((m) => m.id),
+            ];
+
+            await createRoomKeys(newRoom.id, currentUserId, allMemberIds);
+
             navigate(`/chat/room/${newRoom.id}`);
         } catch (error) {
-            console.error('Ошибка при создании комнаты:', error);
+            console.error('Ошибка при создании зашифрованной комнаты:', error);
+            setErrorText(
+                'Не удалось настроить шифрование для комнаты. Попробуйте еще раз.',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -70,9 +86,24 @@ export default function NewRoom() {
                 <h1 className="font-semibold text-lg">Новая комната</h1>
             </header>
 
-            {/* Контент формы с прокруткой, если участников будет много */}
+            {/* Контент формы с прокруткой */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 <form onSubmit={handleCreate} className="space-y-6">
+                    {/* Вывод ошибки шифрования / валидации ключей участников */}
+                    {errorText && (
+                        <div className="flex gap-2.5 items-start p-3 text-sm rounded-md bg-destructive/10 text-destructive border border-destructive/20 animate-in fade-in-50 duration-200">
+                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                            <div>
+                                <p className="font-medium">
+                                    Ошибка безопасности
+                                </p>
+                                <p className="text-muted-foreground text-xs mt-0.5 leading-relaxed">
+                                    {errorText}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Секция: Название */}
                     <div className="space-y-2">
                         <Label htmlFor="room-name">Название комнаты</Label>
@@ -83,7 +114,10 @@ export default function NewRoom() {
                                 type="text"
                                 placeholder="например: флудилка, разработка"
                                 value={roomName}
-                                onChange={(e) => setRoomName(e.target.value)}
+                                onChange={(e) => {
+                                    setRoomName(e.target.value);
+                                    if (errorText) setErrorText(null);
+                                }}
                                 className="pl-9"
                                 maxLength={50}
                                 autoFocus
@@ -154,7 +188,9 @@ export default function NewRoom() {
                             className="w-full"
                             disabled={!roomName.trim() || isLoading}
                         >
-                            {isLoading ? 'Создание...' : 'Создать комнату'}
+                            {isLoading
+                                ? 'Создание и шифрование...'
+                                : 'Создать комнату'}
                         </Button>
                     </div>
                 </form>

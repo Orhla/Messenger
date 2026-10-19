@@ -1,10 +1,4 @@
-'use client';
-
-import {
-    arrayBufferToBase64,
-    exportPublicKey,
-    generateKeyPair,
-} from '@/lib/crypto';
+import { exportPublicKey, generateKeyPair } from '@/lib/crypto';
 import { loadPrivateKey, savePrivateKey } from '@/lib/keystore';
 import { useEffect, useState } from 'react';
 import { useToastManager } from '@/components/ui/toast';
@@ -30,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/supabase';
+import { arrayBufferToBase64 } from '@/lib/utils';
 
 async function checkKeyExists(): Promise<boolean> {
     const key = await loadPrivateKey();

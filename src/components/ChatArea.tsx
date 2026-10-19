@@ -1,7 +1,5 @@
-'use client';
-
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Message as MessageType} from '@/lib/types';
+import type { Message as MessageType } from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -14,7 +12,6 @@ import { MessageSquareDashed } from 'lucide-react';
 type Props = { messages: MessageType[] };
 
 export default function ChatArea({ messages }: Props) {
-    console.log('ChatArea messages:', messages);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
@@ -48,9 +45,9 @@ export default function ChatArea({ messages }: Props) {
                             <MessageContent>
                                 {!isMe && (
                                     <MessageHeader className="text-xs text-muted-foreground mb-1 px-1 font-medium">
-                                            <span className="text-primary">
-                                                {m.senderLabel}
-                                            </span>
+                                        <span className="text-primary">
+                                            {m.senderLabel}
+                                        </span>
                                     </MessageHeader>
                                 )}
 

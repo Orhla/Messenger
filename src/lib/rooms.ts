@@ -7,9 +7,6 @@ export async function createRoom(
     initialMembers: Profile[],
 ): Promise<Room> {
     const session = await getSession();
-    if (!session || !session.user) {
-        throw new Error('User is not authenticated');
-    }
     const creatorId = session?.user?.id;
     console.warn(
         'createRoom called with name:',
@@ -78,11 +75,24 @@ export async function getRoomMembers(roomId: string) {
 
     if (error) throw error;
     return (data
-        ?.map((item: any) => {
+        ?.map((item) => {
             if (!item.profiles) return null;
             return Array.isArray(item.profiles)
                 ? item.profiles[0]
                 : item.profiles;
         })
         .filter(Boolean) || []) as Profile[];
+}
+
+export async function removeMember(
+    roomId: string,
+    userId: string,
+): Promise<void> {
+    const { error } = await supabase
+        .from('room_members')
+        .delete()
+        .eq('room_id', roomId)
+        .eq('member_id', userId);
+
+    if (error) throw error;
 }

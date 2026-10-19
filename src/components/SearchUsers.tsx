@@ -1,5 +1,3 @@
-'use client';
-
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -22,7 +20,9 @@ export default function SearchUsers({
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Profile[]>([]);
 
-    const filteredSearchResults = searchResults.filter((profile) => !excludeIds.includes(profile.id));
+    const filteredSearchResults = searchResults.filter(
+        (profile) => !excludeIds.includes(profile.id),
+    );
     useEffect(() => {
         if (!searchQuery.trim()) {
             setSearchResults([]);
