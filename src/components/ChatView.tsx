@@ -3,12 +3,14 @@ import ChatArea from '@/components/ChatArea';
 import ChatFooter from '@/components/ChatFooter';
 import { useState } from 'react';
 import type { Message, Profile } from '@/lib/types';
+import { AttachButton } from '@/components/AttachButton';
 
 type Props = {
     chatTitle: string;
     messages: Message[];
     members: Profile[];
-    onSend: (text: string) => Promise<void>;
+    onDownloadFile: (messageId: string) => Promise<void>;
+    onSend: (text: string, file: File | null) => Promise<void>;
     onSignOut: () => void;
     children?: React.ReactNode;
 };
@@ -17,18 +19,30 @@ export default function ChatView({
     chatTitle,
     messages,
     members,
+    onDownloadFile,
     onSend,
     onSignOut,
     children,
 }: Props) {
     const [text, setText] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSending, setIsSending] = useState(false);
 
     const handleSend = async () => {
         const trimmedText = text.trim();
-        if (!trimmedText) return;
+        if (!trimmedText && !selectedFile) return;
 
-        await onSend(trimmedText);
-        setText('');
+        setIsSending(true);
+
+        try {
+            await onSend(trimmedText, selectedFile);
+            setText('');
+            setSelectedFile(null);
+        } catch {
+            console.error('Ошибка при отправке сообщения');
+        } finally {
+            setIsSending(false);
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -47,15 +61,26 @@ export default function ChatView({
                 {children}
             </ChatHeader>
 
-            <ChatArea messages={messages} members={members} />
+            <ChatArea
+                messages={messages}
+                members={members}
+                onDownloadFile={onDownloadFile}
+            />
 
             <ChatFooter
-                buttonText="Отправить"
+                buttonText={isSending ? '...' : 'Отправить'}
                 inputPlaceholder="Напишите сообщение..."
                 messageText={text}
                 onChange={(e) => setText(e.target.value)}
                 onClick={handleSend}
                 onKeyDown={handleKeyDown}
+                attachButton={
+                    <AttachButton
+                        selectedFile={selectedFile}
+                        onFileSelect={setSelectedFile}
+                        disabled={isSending}
+                    />
+                }
             />
         </>
     );

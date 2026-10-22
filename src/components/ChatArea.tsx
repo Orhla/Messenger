@@ -8,10 +8,15 @@ import {
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
+import FileMessage from '@/components/FileMessage';
 
-type Props = { messages: MessageType[]; members: Profile[] };
+type Props = {
+    messages: MessageType[];
+    members: Profile[];
+    onDownloadFile: (messageId: string) => Promise<void>;
+};
 
-export default function ChatArea({ messages, members }: Props) {
+export default function ChatArea({ messages, members, onDownloadFile }: Props) {
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
@@ -57,11 +62,23 @@ export default function ChatArea({ messages, members }: Props) {
                                     </MessageHeader>
                                 )}
 
-                                <Bubble variant={isMe ? 'default' : 'muted'}>
-                                    <BubbleContent className="text-sm break-words">
-                                        {m.text}
-                                    </BubbleContent>
-                                </Bubble>
+                                {m.text && m.text.trim() !== '' && (
+                                    <Bubble
+                                        variant={isMe ? 'default' : 'muted'}
+                                    >
+                                        <BubbleContent className="text-sm break-words">
+                                            {m.text}
+                                        </BubbleContent>
+                                    </Bubble>
+                                )}
+
+                                {m.attachment && (
+                                    <FileMessage
+                                        attachment={m.attachment}
+                                        onDownload={() => onDownloadFile(m.id)}
+                                        isMe={isMe}
+                                    />
+                                )}
                             </MessageContent>
                         </Message>
                     );

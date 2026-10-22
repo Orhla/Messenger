@@ -1,6 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
 import {
     fetchMessages,
+    sendFile,
     sendMessage,
     subscribeToMessages,
 } from '@/lib/message.mapper';
@@ -10,6 +11,7 @@ import { useEffect, useState } from 'react';
 import ChatView from '@/components/ChatView';
 import EmptyState from '@/components/EmptyState';
 import { signOut } from '@/lib/auth';
+import { downloadMessageFile } from '@/lib/message.decrypter';
 
 type Props = {
     chatId: string;
@@ -82,9 +84,19 @@ export default function DirectChat({ chatId }: Props) {
     }, [chatId, currentUserId]);
 
     // Единый метод отправки
-    async function send(messageText: string) {
+    async function send(messageText: string, file: File | null) {
         if (!activeChat) return;
         try {
+            if (file) {
+                await sendFile({
+                    type: 'direct',
+                    file,
+                    senderId: currentUserId,
+                    receiverId: activeChat.id,
+                });
+                return;
+            }
+
             await sendMessage({
                 type: 'direct',
                 text: messageText,
@@ -93,6 +105,36 @@ export default function DirectChat({ chatId }: Props) {
             });
         } catch (error) {
             console.error('Не удалось отправить сообщение', error);
+        }
+    }
+
+    async function handleDownloadFile(messageId: string) {
+        const msg = messages.find((m) => m.id === messageId);
+        const attachment = msg?.attachment;
+
+        if (!attachment) {
+            console.error('Данные вложения отсутствуют');
+            return;
+        }
+
+        try {
+            const decryptedBlob = await downloadMessageFile(
+                messageId,
+                'direct',
+                currentUserId,
+            );
+
+            const url = window.URL.createObjectURL(decryptedBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', attachment.name);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch {
+            console.error('Не удалось скачать или расшифровать файл');
         }
     }
 
@@ -112,6 +154,7 @@ export default function DirectChat({ chatId }: Props) {
             members={activeChat ? [activeChat] : []}
             onSend={send}
             onSignOut={signOut}
+            onDownloadFile={handleDownloadFile}
         />
     );
 }

@@ -8,6 +8,7 @@ type Props = {
     inputPlaceholder: string;
     onClick: () => void;
     buttonText: string;
+    attachButton: React.ReactNode;
 };
 
 export default function ChatFooter({
@@ -17,9 +18,11 @@ export default function ChatFooter({
     inputPlaceholder,
     onClick,
     buttonText,
+    attachButton,
 }: Props) {
     return (
         <footer className="p-4 border-t flex gap-2 bg-background">
+            {attachButton}
             <Input
                 value={messageText}
                 onChange={onChange}
