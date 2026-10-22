@@ -28,5 +28,9 @@ export async function downloadAttachment(path: string): Promise<Blob> {
         throw new Error(`Ошибка скачивания файла из хранилища`);
     }
 
+    if (data.size === 0) {
+        throw new Error('Файл на сервере пуст или отсутствует.');
+    }
+
     return data;
 }

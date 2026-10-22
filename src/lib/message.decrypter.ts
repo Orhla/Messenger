@@ -24,31 +24,23 @@ export async function downloadAndDecryptFile(
     messageIv: string,
     chatKey: CryptoKey,
 ): Promise<Blob> {
-    const encryptedBlob = await downloadAttachment(attachment.path);
+    // try {
+        const encryptedBlob = await downloadAttachment(attachment.path);
 
-    if (encryptedBlob.size === 0) {
-        throw new Error('Файл на сервере пуст или отсутствует.');
-    }
+        const encryptedBase64Text = await encryptedBlob.text();
 
-    const encryptedBase64Text = await encryptedBlob.text();
-
-    try {
         const { bytes: decryptedBuffer } = await decryptBytes(
             chatKey,
             encryptedBase64Text,
             messageIv,
         );
 
-        if (!decryptedBuffer || decryptedBuffer.byteLength === 0) {
-            throw new Error('Получены пустые данные после расшифровки.');
-        }
-
         return new Blob([decryptedBuffer], { type: attachment.mime });
-    } catch {
-        throw new Error(
-            'Не удалось расшифровать файл. Возможно, у вас нет доступа (неверный ключ шифрования) или файл был поврежден.',
-        );
-    }
+    // } catch {
+    //     throw new Error(
+    //         'Не удалось расшифровать файл. Возможно, у вас нет доступа (неверный ключ шифрования) или файл был поврежден.',
+    //     );
+    // }
 }
 
 export async function downloadMessageFile(

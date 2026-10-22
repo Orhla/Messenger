@@ -129,6 +129,10 @@ export async function decryptBytes(
         cipherbytesBuffer,
     );
 
+    if (!decryptedBuffer || decryptedBuffer.byteLength === 0) {
+        throw new Error('Получены пустые данные после расшифровки.');
+    }
+
     return {
         bytes: decryptedBuffer,
     };
