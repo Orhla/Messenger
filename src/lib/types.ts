@@ -4,6 +4,7 @@ export type BaseMessage = {
     receiver_id: string;
     iv: string;
     created_at: string;
+    attachment?: AttachmentMetadata;
 };
 
 export type EncryptedMessage = BaseMessage & {
@@ -19,9 +20,9 @@ export type ChatMessage = BaseMessage & {
 export type Message = {
     id: string;
     senderId: string;
-    senderLabel: string; // email отправителя, а не UUID
     text: string;
     createdAt: string;
+    attachment?: AttachmentMetadata;
 };
 
 export type DbRoomKeyRow = {
@@ -41,6 +42,7 @@ export type GroupChatMessage = {
     iv: string;
     created_at: string;
     profiles?: { email: string };
+    attachment?: AttachmentMetadata;
 };
 
 export type Profile = {
@@ -51,4 +53,11 @@ export type Profile = {
 export type Room = {
     id: string;
     room_name: string;
+};
+
+export type AttachmentMetadata = {
+    path: string;
+    name: string;
+    size: number;
+    mime: string;
 };

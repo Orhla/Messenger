@@ -1,6 +1,5 @@
 import { arrayBufferToBase64, base64ToArrayBuffer } from '@/lib/utils';
-import { decryptText, encryptText } from '@/lib/crypto';
-import type { GroupChatMessage } from './types';
+import { decryptBytes, encryptBytes } from '@/lib/crypto';
 
 export async function generateRoomKey(): Promise<CryptoKey> {
     return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
@@ -30,12 +29,11 @@ export async function wrapRoomKey(
     pairKey: CryptoKey,
 ): Promise<{ wrappedKey: string; iv: string }> {
     const rawKeyBuffer = await crypto.subtle.exportKey('raw', roomKey);
-    const stringifiedKey = arrayBufferToBase64(rawKeyBuffer);
 
-    const { ciphertext, iv } = await encryptText(pairKey, stringifiedKey);
+    const { cipherbytes, iv } = await encryptBytes(pairKey, rawKeyBuffer);
 
     return {
-        wrappedKey: ciphertext,
+        wrappedKey: cipherbytes,
         iv: iv,
     };
 }
@@ -45,30 +43,13 @@ export async function unwrapRoomKey(
     iv: string,
     pairKey: CryptoKey,
 ): Promise<CryptoKey> {
-    const { plainText } = await decryptText(pairKey, wrappedKey, iv);
-
-    const rawKeyBuffer = base64ToArrayBuffer(plainText);
+    const { bytes } = await decryptBytes(pairKey, wrappedKey, iv);
 
     return crypto.subtle.importKey(
         'raw',
-        rawKeyBuffer,
+        bytes,
         { name: 'AES-GCM', length: 256 },
         true,
         ['encrypt', 'decrypt'],
     );
-}
-
-export async function encryptRoomMessage(
-    text: string,
-    roomKey: CryptoKey,
-): Promise<{ ciphertext: string; iv: string }> {
-    return await encryptText(roomKey, text);
-}
-
-export async function decryptRoomMessage(
-    row: GroupChatMessage,
-    roomKey: CryptoKey,
-): Promise<string> {
-    const { plainText } = await decryptText(roomKey, row.ciphertext, row.iv);
-    return plainText;
 }

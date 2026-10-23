@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { addMember, removeMember, getRoomMembers, getRooms } from '@/lib/rooms'; // Импортируем removeMember для отката
 import {
     fetchMessages,
+    sendFile,
     sendMessage,
     subscribeToMessages,
 } from '@/lib/message.mapper.ts';
@@ -13,6 +14,7 @@ import EmptyState from '@/components/EmptyState';
 import MembersPanel from '@/components/MembersPanel';
 import ChatView from '@/components/ChatView';
 import { toast } from '@/components/ui/toast';
+import { downloadMessageFile } from '@/lib/message.decrypter';
 
 export default function RoomChat({ chatId }: { chatId: string }) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -76,13 +78,6 @@ export default function RoomChat({ chatId }: { chatId: string }) {
                     if (prev.some((msg) => msg.id === newMessage.id))
                         return prev;
 
-                    if (
-                        newMessage.senderId === currentUserId &&
-                        session?.user?.email
-                    ) {
-                        newMessage.senderLabel = session.user.email;
-                    }
-
                     return [...prev, newMessage];
                 });
             },
@@ -136,9 +131,19 @@ export default function RoomChat({ chatId }: { chatId: string }) {
     };
 
     // Единый метод отправки
-    async function send(messageText: string) {
+    async function send(messageText: string, file: File | null) {
         if (!activeChat) return;
         try {
+            if (file) {
+                await sendFile({
+                    type: 'room',
+                    file,
+                    senderId: currentUserId,
+                    chatId: activeChat.id,
+                });
+                return;
+            }
+
             await sendMessage({
                 type: 'room',
                 text: messageText,
@@ -147,6 +152,38 @@ export default function RoomChat({ chatId }: { chatId: string }) {
             });
         } catch (error) {
             console.error('Не удалось отправить сообщение', error);
+        }
+    }
+
+    async function handleDownloadFile(messageId: string) {
+        const msg = messages.find((m) => m.id === messageId);
+        const attachment = msg?.attachment;
+
+        if (!attachment) {
+            console.error('Данные вложения отсутствуют');
+            return;
+        }
+
+        try {
+            const decryptedBlob = await downloadMessageFile(
+                messageId,
+                'room',
+                currentUserId,
+            );
+
+            const url = window.URL.createObjectURL(decryptedBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', attachment.name);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch {
+            console.error(
+                'Не удалось скачать или расшифровать файл из комнаты',
+            );
         }
     }
 
@@ -163,8 +200,10 @@ export default function RoomChat({ chatId }: { chatId: string }) {
         <ChatView
             chatTitle={activeChat.room_name}
             messages={messages}
+            members={members}
             onSend={send}
             onSignOut={signOut}
+            onDownloadFile={handleDownloadFile}
         >
             <MembersPanel members={members} onAddMember={handleAddMember} />
         </ChatView>

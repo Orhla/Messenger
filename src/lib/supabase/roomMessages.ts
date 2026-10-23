@@ -1,7 +1,7 @@
 import type { GroupChatMessage, Message } from '@/lib/types.ts';
 import { supabase } from '@/supabase.ts';
 import { getRoomKey } from '@/lib/roomKeyManager';
-import { decryptRoomMessage, encryptRoomMessage } from '@/lib/roomCrypto';
+import { decryptText, encryptText } from '@/lib/crypto';
 
 export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
     const {
@@ -25,10 +25,25 @@ export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
             data.map(async (msg) => {
                 let plainText = '🔒 [Ошибка декодирования сообщения]';
                 try {
-                    plainText = await decryptRoomMessage(msg, roomKey);
+                    const result = await decryptText(
+                        roomKey,
+                        msg.ciphertext,
+                        msg.iv,
+                    );
+                    plainText = result.plainText;
                 } catch (e) {
                     console.error('Ошибка дешифрования строки сообщения:', e);
                 }
+
+                const attachment = msg.attachment_path
+                    ? {
+                          path: msg.attachment_path,
+                          name: msg.attachment_name || 'file',
+                          size: msg.attachment_size || 0,
+                          mime:
+                              msg.attachment_mime || 'application/octet-stream',
+                      }
+                    : undefined;
 
                 return {
                     id: msg.id,
@@ -36,6 +51,7 @@ export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
                     senderLabel: msg.profiles?.email || msg.sender_id,
                     text: plainText,
                     createdAt: msg.created_at,
+                    attachment,
                 };
             }),
         );
@@ -45,7 +61,6 @@ export async function fetchRoomMessages(chatId: string): Promise<Message[]> {
             return {
                 id: msg.id,
                 senderId: msg.sender_id,
-                senderLabel: msg.profiles?.email || msg.sender_id,
                 text: '🔒 [Сообщение зашифровано. Ключ отсутствует]',
                 createdAt: msg.created_at,
             };
@@ -59,7 +74,7 @@ export async function sendRoomMessage(
     chatId: string,
 ): Promise<void> {
     const roomKey = await getRoomKey(chatId, senderId);
-    const { ciphertext, iv } = await encryptRoomMessage(text, roomKey);
+    const { ciphertext, iv } = await encryptText(roomKey, text);
 
     const { error } = await supabase.from('room_messages').insert({
         ciphertext: ciphertext,
@@ -75,6 +90,10 @@ export async function insertRoomMessage(payload: {
     iv: string;
     room_id: string;
     sender_id: string;
+    attachment_path?: string | null;
+    attachment_name?: string | null;
+    attachment_size?: number | null;
+    attachment_mime?: string | null;
 }): Promise<void> {
     const { error } = await supabase.from('room_messages').insert(payload);
     if (error) throw error;
@@ -94,7 +113,14 @@ export function subscribeToRoomMessages(
                 table: 'room_messages',
                 filter: `room_id=eq.${chatId}`,
             },
-            async (event: { new: GroupChatMessage }) => {
+            async (event: {
+                new: GroupChatMessage & {
+                    attachment_path?: string | null;
+                    attachment_name?: string | null;
+                    attachment_size?: number | null;
+                    attachment_mime?: string | null;
+                };
+            }) => {
                 const message = event.new;
                 const {
                     data: { user },
@@ -104,18 +130,34 @@ export function subscribeToRoomMessages(
                 if (user) {
                     try {
                         const roomKey = await getRoomKey(chatId, user.id);
-                        plainText = await decryptRoomMessage(message, roomKey);
+                        const result = await decryptText(
+                            roomKey,
+                            message.ciphertext,
+                            message.iv,
+                        );
+                        plainText = result.plainText;
                     } catch (err) {
                         console.error('Realtime-дешифрование провалено:', err);
                     }
                 }
 
+                const attachment = message.attachment_path
+                    ? {
+                          path: message.attachment_path,
+                          name: message.attachment_name || 'file',
+                          size: message.attachment_size || 0,
+                          mime:
+                              message.attachment_mime ||
+                              'application/octet-stream',
+                      }
+                    : undefined;
+
                 onMessage({
                     id: message.id,
                     senderId: message.sender_id,
-                    senderLabel: message.profiles?.email || message.sender_id,
                     text: plainText,
                     createdAt: message.created_at,
+                    attachment,
                 });
             },
         )

@@ -1,5 +1,5 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Message as MessageType } from '@/lib/types';
+import type { Message as MessageType, Profile } from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -8,10 +8,15 @@ import {
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
+import FileMessage from '@/components/FileMessage';
 
-type Props = { messages: MessageType[] };
+type Props = {
+    messages: MessageType[];
+    members: Profile[];
+    onDownloadFile: (messageId: string) => Promise<void>;
+};
 
-export default function ChatArea({ messages }: Props) {
+export default function ChatArea({ messages, members, onDownloadFile }: Props) {
     const { session } = useAuth();
     const currentUserId = session!.user.id;
 
@@ -40,22 +45,40 @@ export default function ChatArea({ messages }: Props) {
                 {messages.map((m) => {
                     const isMe = m.senderId === currentUserId;
 
+                    const senderProfile = members.find(
+                        (member) => member.id === m.senderId,
+                    );
+                    const senderLabel =
+                        senderProfile?.email || 'Неизвестный пользователь';
+
                     return (
                         <Message key={m.id} align={isMe ? 'end' : 'start'}>
                             <MessageContent>
                                 {!isMe && (
                                     <MessageHeader className="text-xs text-muted-foreground mb-1 px-1 font-medium">
                                         <span className="text-primary">
-                                            {m.senderLabel}
+                                            {senderLabel}
                                         </span>
                                     </MessageHeader>
                                 )}
 
-                                <Bubble variant={isMe ? 'default' : 'muted'}>
-                                    <BubbleContent className="text-sm break-words">
-                                        {m.text}
-                                    </BubbleContent>
-                                </Bubble>
+                                {m.text && m.text.trim() !== '' && (
+                                    <Bubble
+                                        variant={isMe ? 'default' : 'muted'}
+                                    >
+                                        <BubbleContent className="text-sm break-words">
+                                            {m.text}
+                                        </BubbleContent>
+                                    </Bubble>
+                                )}
+
+                                {m.attachment && (
+                                    <FileMessage
+                                        attachment={m.attachment}
+                                        onDownload={() => onDownloadFile(m.id)}
+                                        isMe={isMe}
+                                    />
+                                )}
                             </MessageContent>
                         </Message>
                     );
