@@ -1,3 +1,5 @@
+import type { Message, SystemMessage } from '@/lib/types';
+
 export { cn } from 'cn';
 
 export function getUsername(): string {
@@ -26,4 +28,10 @@ export function base64ToArrayBuffer(base64String: string): ArrayBuffer {
     }
 
     return bytes.buffer;
+}
+
+export function isSystemMessage(
+    message: Message | SystemMessage,
+): message is SystemMessage {
+    return 'type' in message && message.type === 'system';
 }

@@ -61,3 +61,38 @@ export type AttachmentMetadata = {
     size: number;
     mime: string;
 };
+
+export type SystemMessage = {
+    id: string;
+    type: 'system';
+    text: string;
+    created_at: string;
+};
+
+export type CallState =
+    | { status: 'idle' }
+    | { status: 'calling'; peerId: string }
+    | { status: 'ringing'; peerId: string; offer: RTCSessionDescriptionInit }
+    | { status: 'connecting'; peerId: string }
+    | { status: 'connected'; peerId: string; startedAt: number };
+
+export type CallSignal =
+    | { type: 'offer'; sdp: RTCSessionDescriptionInit; from: string }
+    | { type: 'answer'; sdp: RTCSessionDescriptionInit; from: string }
+    | { type: 'ice-candidate'; candidate: RTCIceCandidateInit; from: string }
+    | { type: 'call-end'; from: string }
+    | { type: 'call-reject'; from: string };
+
+export type UseWebRTCOptions = {
+    currentUserId: string;
+    peerId: string;
+    onSystemMessage: (text: string) => void;
+};
+
+export type UseWebRTCResult = {
+    callState: CallState;
+    startCall: () => Promise<void>;
+    acceptCall: () => Promise<void>;
+    rejectCall: () => void;
+    hangUp: () => void;
+};

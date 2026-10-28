@@ -2,12 +2,12 @@ import ChatHeader from '@/components/ChatHeader';
 import ChatArea from '@/components/ChatArea';
 import ChatFooter from '@/components/ChatFooter';
 import { useState } from 'react';
-import type { Message, Profile } from '@/lib/types';
+import type { Message, Profile, SystemMessage } from '@/lib/types';
 import { AttachButton } from '@/components/AttachButton';
 
 type Props = {
     chatTitle: string;
-    messages: Message[];
+    messages: (Message | SystemMessage)[];
     members: Profile[];
     onDownloadFile: (messageId: string) => Promise<void>;
     onSend: (text: string, file: File | null) => Promise<void>;

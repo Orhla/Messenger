@@ -1,5 +1,9 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Message as MessageType, Profile } from '@/lib/types';
+import type {
+    Message as MessageType,
+    Profile,
+    SystemMessage,
+} from '@/lib/types';
 import {
     Message,
     MessageContent,
@@ -9,9 +13,10 @@ import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { MessageSquareDashed } from 'lucide-react';
 import FileMessage from '@/components/FileMessage';
+import { isSystemMessage } from '@/lib/utils';
 
 type Props = {
-    messages: MessageType[];
+    messages: (MessageType | SystemMessage)[];
     members: Profile[];
     onDownloadFile: (messageId: string) => Promise<void>;
 };
@@ -43,6 +48,19 @@ export default function ChatArea({ messages, members, onDownloadFile }: Props) {
         <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
                 {messages.map((m) => {
+                    if (isSystemMessage(m)) {
+                        return (
+                            <div
+                                key={m.id}
+                                className="flex w-full justify-center my-2 animate-in fade-in zoom-in-95 duration-200"
+                            >
+                                <div className="rounded-full bg-muted/60 border border-border/40 px-3 py-1 text-center text-xs font-medium text-muted-foreground shadow-sm max-w-[85%] break-words">
+                                    {m.text}
+                                </div>
+                            </div>
+                        );
+                    }
+
                     const isMe = m.senderId === currentUserId;
 
                     const senderProfile = members.find(
