@@ -6,23 +6,45 @@ import {
     subscribeToMessages,
 } from '@/lib/message.mapper';
 import { fetchProfileById } from '@/lib/profiles';
-import type { Message, Profile } from '@/lib/types';
+import type { Message, Profile, SystemMessage } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import ChatView from '@/components/ChatView';
 import EmptyState from '@/components/EmptyState';
 import { signOut } from '@/lib/auth';
 import { downloadMessageFile } from '@/lib/message.decrypter';
+import { useWebRTC } from '@/hooks/useWebRTC';
+import { isSystemMessage } from '@/lib/utils';
+import { Phone } from 'lucide-react';
+import { CallOverlay } from '@/components/CallOverlay';
 
 type Props = {
     chatId: string;
 };
 
 export default function DirectChat({ chatId }: Props) {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<(Message | SystemMessage)[]>([]);
     const [activeChat, setActiveChat] = useState<Profile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { session } = useAuth();
     const currentUserId = session!.user.id;
+
+    function addSystemMessage(text: string) {
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: crypto.randomUUID(),
+                type: 'system' as const,
+                text,
+                created_at: new Date().toISOString(),
+            },
+        ]);
+    }
+
+    const { callState, startCall, acceptCall, rejectCall, hangUp } = useWebRTC({
+        currentUserId,
+        peerId: chatId,
+        onSystemMessage: addSystemMessage,
+    });
 
     // Загрузка информации о профиле собеседника
     useEffect(() => {
@@ -110,6 +132,8 @@ export default function DirectChat({ chatId }: Props) {
 
     async function handleDownloadFile(messageId: string) {
         const msg = messages.find((m) => m.id === messageId);
+        if (!msg || isSystemMessage(msg)) return;
+
         const attachment = msg?.attachment;
 
         if (!attachment) {
@@ -148,13 +172,33 @@ export default function DirectChat({ chatId }: Props) {
     }
 
     return (
-        <ChatView
-            chatTitle={activeChat.email}
-            messages={messages}
-            members={activeChat ? [activeChat] : []}
-            onSend={send}
-            onSignOut={signOut}
-            onDownloadFile={handleDownloadFile}
-        />
+        <>
+            <ChatView
+                chatTitle={activeChat.email}
+                messages={messages}
+                members={activeChat ? [activeChat] : []}
+                onSend={send}
+                onSignOut={signOut}
+                onDownloadFile={handleDownloadFile}
+            >
+                {callState.status === 'idle' && (
+                    <button
+                        onClick={startCall}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/80 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                        title="Аудиозвонок"
+                    >
+                        <Phone className="h-4 w-4 stroke-[1.8]" />
+                    </button>
+                )}
+            </ChatView>
+
+            <CallOverlay
+                callState={callState}
+                peerEmail={activeChat.email}
+                onAccept={acceptCall}
+                onReject={rejectCall}
+                onHangUp={hangUp}
+            />
+        </>
     );
 }
